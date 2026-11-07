@@ -133,6 +133,7 @@ checks each planted defect tripped the tests nominated for it. Latest result:
 Full output in `docs/defect_detection_report.md`.
 
 ## How and when tests run
+First CI run: 7 November 2026, commit 89ed6f8, 27 seconds, all steps green.
 
 | Trigger | What runs |
 |---|---|
