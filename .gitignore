@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+.idea/
+.vscode/
+
+# The warehouse is rebuildable from data/raw/ in seconds; don't version a binary.
+data/*.db
+data/*.db-journal
+
+# Logs are per-run.
+logs/*.log
+
+# Power BI working files
+*.pbix.bak
+~$*.pbix
+
+# Raw API responses ARE committed on purpose: they make the project reproducible
+# offline and prove the numbers in the README. Un-ignore nothing here.

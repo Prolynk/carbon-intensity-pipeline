@@ -1,0 +1,62 @@
+[
+  {
+    "id": "D1",
+    "defect": "duplicate_period",
+    "period": "2026-09-22T05:00Z",
+    "expected_failing_tests": [
+      "test_row_count_equals_days_times_48"
+    ],
+    "note": "Caught only by the row-count test. transform.py de-duplicates on period start by design, to absorb the overlap at chunk seams, so a duplicate never reaches the warehouse for DQ-07 to see. See docs/defects/DEF-003.md."
+  },
+  {
+    "id": "D2",
+    "defect": "missing_period_gap",
+    "period": "2026-09-22T09:30Z",
+    "expected_failing_tests": [
+      "test_no_gaps_in_the_period_sequence",
+      "test_row_count_equals_days_times_48"
+    ]
+  },
+  {
+    "id": "D3",
+    "defect": "negative_actual",
+    "period": "2026-09-22T02:30Z",
+    "expected_failing_tests": [
+      "test_actual_values_are_non_negative"
+    ]
+  },
+  {
+    "id": "D4",
+    "defect": "actual_out_of_range",
+    "period": "2026-09-22T03:00Z",
+    "expected_failing_tests": [
+      "test_actual_values_are_within_a_plausible_range"
+    ]
+  },
+  {
+    "id": "D5",
+    "defect": "unknown_index_category",
+    "period": "2026-09-22T04:00Z",
+    "expected_failing_tests": [
+      "test_index_values_are_documented_categories"
+    ]
+  },
+  {
+    "id": "D6",
+    "defect": "null_forecast",
+    "period": "2026-09-22T05:30Z",
+    "expected_failing_tests": [
+      "test_no_missing_forecast_values",
+      "test_forecast_values_are_numeric_and_in_range"
+    ]
+  },
+  {
+    "id": "D7",
+    "defect": "period_not_30_minutes",
+    "period": "2026-09-22T07:00Z",
+    "expected_failing_tests": [
+      "test_every_period_spans_exactly_30_minutes",
+      "test_periods_do_not_overlap"
+    ]
+  }
+]

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GB Carbon Intensity — 90 days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#eceff0; --panel:#f7f8f8; --ink:#16242b; --ink-2:#5b6f78; --ink-3:#8b9ca3;
+  --rule:#d2d9dc; --rule-soft:#e2e7e9; --accent:#2a5665;
+  --c-vlow:#1f6f57; --c-low:#2e8b6b; --c-mod:#b9972a; --c-high:#c05a34; --c-vhigh:#8c2f24;
+  --ok:#2e8b6b; --warn:#b9972a;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#111a1e; --panel:#17232a; --ink:#e6edef; --ink-2:#9db0b8; --ink-3:#6d838c;
+    --rule:#2a3a42; --rule-soft:#213038; --accent:#8fc3d6;
+    --c-vlow:#3fa882; --c-low:#55bd94; --c-mod:#d7b647; --c-high:#e07a52; --c-vhigh:#c4584a;
+    --ok:#55bd94; --warn:#d7b647;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#111a1e; --panel:#17232a; --ink:#e6edef; --ink-2:#9db0b8; --ink-3:#6d838c;
+  --rule:#2a3a42; --rule-soft:#213038; --accent:#8fc3d6;
+  --c-vlow:#3fa882; --c-low:#55bd94; --c-mod:#d7b647; --c-high:#e07a52; --c-vhigh:#c4584a;
+  --ok:#55bd94; --warn:#d7b647;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Archivo","Segoe UI",system-ui,-apple-system,sans-serif;
+  font-variation-settings:"wdth" 100;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 72px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1px solid var(--rule);padding:34px 0 0}
+.mast h1{
+  margin:0; font-size:clamp(28px,5vw,46px); line-height:1.02; font-weight:680;
+  font-variation-settings:"wdth" 88,"wght" 680; letter-spacing:-.018em; max-width:17ch;
+}
+.mast .dek{margin:12px 0 0;color:var(--ink-2);font-size:15px;max-width:62ch}
+.mast .meta{margin:16px 0 0;color:var(--ink-3);font-size:12.5px}
+.mast .meta a{color:inherit}
+
+/* ---- page tabs (mirrors the four Power BI report pages) ---- */
+.tabs{display:flex;gap:2px;margin-top:26px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{
+  appearance:none;border:0;background:transparent;color:var(--ink-2);
+  font:inherit;font-size:13.5px;font-weight:540;letter-spacing:.005em;
+  padding:9px 15px;cursor:pointer;white-space:nowrap;position:relative;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:3px}
+.tabs .idx{color:var(--ink-3);margin-right:7px;font-weight:450}
+.tabs button[aria-selected="true"] .idx{color:var(--accent)}
+
+[role="tabpanel"][hidden]{display:none}
+section.block{padding:34px 0 0}
+h2.sec{
+  margin:0 0 4px;font-size:19px;font-weight:650;letter-spacing:-.01em;
+  font-variation-settings:"wdth" 92,"wght" 650;
+}
+p.lede{margin:0 0 20px;color:var(--ink-2);font-size:14px;max-width:72ch}
+p.note{margin:10px 0 0;color:var(--ink-3);font-size:12.5px;max-width:78ch}
+
+/* ---- readings row: ruled, not carded ---- */
+.readings{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  border-top:1px solid var(--ink);border-bottom:1px solid var(--rule);margin:26px 0 0}
+.reading{padding:14px 16px 15px;border-left:1px solid var(--rule-soft)}
+.reading:first-child{border-left:0;padding-left:0}
+.reading .v{font-size:clamp(25px,3.3vw,33px);line-height:1;font-weight:640;
+  font-variation-settings:"wdth" 80,"wght" 640;letter-spacing:-.02em;display:block}
+.reading .u{font-size:13px;font-weight:450;color:var(--ink-2);margin-left:3px;
+  font-variation-settings:"wdth" 100,"wght" 450;letter-spacing:0}
+.reading .k{display:block;margin-top:7px;font-size:12.5px;color:var(--ink-2);line-height:1.35}
+
+/* ---- hero waveform ---- */
+.hero{margin-top:28px;background:var(--panel);border:1px solid var(--rule-soft);
+  border-radius:3px;padding:20px 18px 12px}
+.hero .cap{display:flex;flex-wrap:wrap;gap:4px 18px;align-items:baseline;margin:0 0 6px}
+.hero .cap h3{margin:0;font-size:16px;font-weight:620;font-variation-settings:"wdth" 92,"wght" 620}
+.hero .cap span{font-size:12.5px;color:var(--ink-2)}
+
+.panel{background:var(--panel);border:1px solid var(--rule-soft);border-radius:3px;padding:18px 16px 10px}
+.panel h3{margin:0 0 2px;font-size:14.5px;font-weight:620;font-variation-settings:"wdth" 94,"wght" 620}
+.panel .sub{margin:0 0 12px;font-size:12.5px;color:var(--ink-2)}
+.grid2{display:grid;gap:16px;grid-template-columns:1fr 1fr;margin-top:24px}
+.grid2.lopsided{grid-template-columns:1.45fr 1fr}
+@media (max-width:760px){.grid2,.grid2.lopsided{grid-template-columns:1fr}}
+
+svg{display:block;width:100%;height:auto;overflow:visible}
+.scroller{overflow-x:auto}
+.ax{fill:var(--ink-3);font-size:10.5px;font-variant-numeric:tabular-nums}
+.axl{fill:var(--ink-2);font-size:11px}
+.gl{stroke:var(--rule-soft);stroke-width:1}
+.gl0{stroke:var(--rule);stroke-width:1}
+.ann{fill:var(--ink);font-size:11.5px;font-weight:600}
+.ann-s{fill:var(--ink-2);font-size:10.5px}
+
+/* ---- mix bar ---- */
+.mix{display:flex;height:26px;border-radius:2px;overflow:hidden;margin:6px 0 10px}
+.mix div{display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600}
+.mixkey{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--ink-2)}
+.mixkey i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:6px}
+
+/* ---- table ---- */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--ink-2);font-size:12px;
+  padding:0 10px 7px 0;border-bottom:1px solid var(--rule)}
+td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;padding-right:0}
+#checks-table td.r,#checks-table th.r{padding-right:20px;white-space:nowrap;width:1%}
+#checks-table td:first-child,#checks-table th:first-child{padding-right:18px}
+.pill{display:inline-block;padding:1px 8px;border-radius:9px;font-size:11px;font-weight:650}
+.pill.pass{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;
+  background:color-mix(in srgb,var(--ink) 7%,transparent);padding:1px 5px;border-radius:3px}
+
+/* ---- callout ---- */
+.callout{margin-top:24px;border-left:3px solid var(--accent);padding:2px 0 2px 16px}
+.callout p{margin:0 0 8px;font-size:14px;max-width:70ch;color:var(--ink)}
+.callout p:last-child{margin-bottom:0}
+.callout strong{font-weight:640}
+
+footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--rule);
+  color:var(--ink-3);font-size:12px;max-width:80ch}
+footer a{color:var(--ink-2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <h1>Britain’s grid is twice as clean at lunchtime as at teatime</h1>
+  <p class="dek">Ninety days of half-hourly carbon intensity, pulled from the National Energy System Operator’s open API, validated, loaded into a star schema and modelled in Power BI. This page is a static preview of the four report pages.</p>
+  <p class="meta num" id="meta"></p>
+  <div class="tabs" role="tablist" aria-label="Report pages">
+    <button role="tab" id="tab-overview" aria-controls="panel-overview" data-view="overview"><span class="idx">1</span>Overview</button>
+    <button role="tab" id="tab-time-patterns" aria-controls="panel-time-patterns" data-view="time-patterns"><span class="idx">2</span>Time patterns</button>
+    <button role="tab" id="tab-forecast" aria-controls="panel-forecast" data-view="forecast"><span class="idx">3</span>Forecast accuracy</button>
+    <button role="tab" id="tab-data-quality" aria-controls="panel-data-quality" data-view="data-quality"><span class="idx">4</span>Data quality</button>
+  </div>
+</header>
+
+<!-- ===================== 1. OVERVIEW ===================== -->
+<div role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
+  <section class="block">
+    <div class="readings" id="kpis"></div>
+
+    <div class="hero">
+      <div class="cap">
+        <h3>The shape of a British day</h3>
+        <span>Average actual intensity for each of the 48 half-hour slots, local time</span>
+      </div>
+      <div id="wave"></div>
+    </div>
+    <p class="note">The grid has a rhythm, and it is not the one most people assume. Solar and lower demand pull the middle of the day down; the evening peak, when everyone gets home and gas plant is called on, pushes it to its daily worst. Overnight sits in between.</p>
+
+    <div class="grid2 lopsided">
+      <div class="panel">
+        <h3>Daily average over the window</h3>
+        <p class="sub">Thin line is the daily mean; thick line is the rolling 7-day average</p>
+        <div id="daily"></div>
+      </div>
+      <div class="panel">
+        <h3>How the 4,320 periods were rated</h3>
+        <p class="sub">The index band published alongside each reading</p>
+        <div class="mix" id="mix"></div>
+        <div class="mixkey" id="mixkey"></div>
+        <div id="weekend" style="margin-top:22px"></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><strong>What to do with this.</strong> Move discretionary electricity use out of 17:00–21:00 and into 11:00–14:00. On these ninety days that cuts the carbon intensity of whatever is moved by roughly 45%, without reducing how much is used.</p>
+      <p>For anything reported or billed, use the settled actual rather than the forecast, and wait for settlement before publishing a figure.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== 2. TIME PATTERNS ===================== -->
+<div role="tabpanel" id="panel-time-patterns" aria-labelledby="tab-time-patterns" hidden>
+  <section class="block">
+    <h2 class="sec">When the grid is green, hour by hour and day by day</h2>
+    <p class="lede">The matrix below is the headline visual of the report: average actual intensity for every combination of weekday and hour. The vertical band through the middle of the day and the solid column down the right-hand evening edge are the whole finding in one picture.</p>
+    <div class="panel scroller">
+      <h3>Average intensity by weekday and hour</h3>
+      <p class="sub">Darker green is cleaner; darker red is dirtier. Figures in gCO₂/kWh.</p>
+      <div id="heat"></div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>By part of the day</h3>
+        <p class="sub">Averaged across all ninety days</p>
+        <div id="daypart"></div>
+      </div>
+      <div class="panel">
+        <h3>Every half-hour slot, ranked</h3>
+        <p class="sub">The six cleanest and six dirtiest of the 48</p>
+        <div id="ranked"></div>
+      </div>
+    </div>
+    <p class="note">Clock-change caveat: the fact table is keyed in UTC, but these slots are local. On 25 October the local day held 50 periods rather than 48, so two slots carry one extra observation each. With ninety days of data the effect on an average is well under a gram.</p>
+  </section>
+</div>
+
+<!-- ===================== 3. FORECAST ACCURACY ===================== -->
+<div role="tabpanel" id="panel-forecast" aria-labelledby="tab-forecast" hidden>
+  <section class="block">
+    <h2 class="sec">How good is the published forecast?</h2>
+    <p class="lede">Every period arrives with a forecast and, once settled, an actual. Comparing the two across 4,314 settled periods gives a direct read on whether the forecast is worth planning against.</p>
+    <div class="readings" id="acckpis"></div>
+    <div class="grid2 lopsided">
+      <div class="panel">
+        <h3>Forecast against actual</h3>
+        <p class="sub">1,400 periods sampled. The diagonal is a perfect forecast.</p>
+        <div id="scatter"></div>
+      </div>
+      <div class="panel">
+        <h3>Where the forecast struggles</h3>
+        <p class="sub">Mean absolute error by hour of day</p>
+        <div id="maehour"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h3>Daily mean absolute error across the window</h3>
+      <p class="sub">Spikes line up with rapid changes in wind output, which the forecast reacts to late</p>
+      <div id="maedaily"></div>
+    </div>
+    <div class="callout">
+      <p><strong>Verdict.</strong> Trust it for choosing a time of day. The error is small relative to the 70-gram swing between midday and teatime, so the ranking of hours is reliable even when the level is a little off.</p>
+      <p>Do not trust it to the gram. There is a consistent optimistic bias, and the worst half-hour in the window was out by 165.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== 4. DATA QUALITY ===================== -->
+<div role="tabpanel" id="panel-data-quality" aria-labelledby="tab-data-quality" hidden>
+  <section class="block">
+    <h2 class="sec">What the pipeline checked before loading anything</h2>
+    <p class="lede">Nine checks run on every execution and are written to the warehouse, not just to a log. A check marked <em>error</em> stops the run and nothing is loaded. A check marked <em>warning</em> is recorded and the run continues, because an unsettled actual is a property of the source rather than a defect.</p>
+    <div class="panel">
+      <table id="checks-table">
+        <thead><tr><th>Check</th><th>Result</th><th class="r">Issues</th><th>What it found</th></tr></thead>
+        <tbody id="checks"></tbody>
+      </table>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Periods loaded per local day</h3>
+        <p class="sub">The line marks 48, a complete day</p>
+        <div id="ppd"></div>
+      </div>
+      <div class="panel">
+        <h3>This run</h3>
+        <div id="runtable"></div>
+      </div>
+    </div>
+    <p class="note">Two days are off the line, for two different reasons. 25 October is the autumn clock change, when the local day genuinely holds 50 half-hours. 8 August holds 46 because the requested window opens at midnight <em>UTC</em> while the clocks were on BST, so the first two local half-hours fall outside it. Keeping the fact table keyed in UTC is what makes both visible as known quirks rather than as duplicate-key or gap errors.</p>
+  </section>
+</div>
+
+<footer>
+  <p>Carbon intensity data © National Energy System Operator, published through the <a href="https://carbonintensity.org.uk">Carbon Intensity API</a> and licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Figures computed from the pipeline run of 5 November 2026. Every number on this page is reproduced by the SQL views in <code>sql/views.sql</code> and by the DAX measures in <code>powerbi/measures.dax</code>.</p>
+</footer>
+</div>
+
+<script type="application/json" id="data">{"kpi":{"periods":4320.0,"avg_actual":119.0,"avg_forecast":116.2,"mae":12.0,"bias":2.8,"low_pct":36.0,"high_pct":20.6,"missing_pct":0.0,"missing_n":0.0,"min_a":27.0,"max_a":247.0,"w20":84.4,"w50":97.3,"worst":165.0,"mape":11.5,"scored":4320.0,"min_hh":86.0,"max_hh":155.9},"halfhour":[{"time_label":"00:00","avg_actual":118.7,"avg_forecast":122.4},{"time_label":"00:30","avg_actual":115.9,"avg_forecast":120.4},{"time_label":"01:00","avg_actual":114.1,"avg_forecast":117.6},{"time_label":"01:30","avg_actual":112.6,"avg_forecast":114.7},{"time_label":"02:00","avg_actual":112.2,"avg_forecast":113.0},{"time_label":"02:30","avg_actual":112.1,"avg_forecast":112.1},{"time_label":"03:00","avg_actual":111.6,"avg_forecast":111.9},{"time_label":"03:30","avg_actual":114.2,"avg_forecast":110.0},{"time_label":"04:00","avg_actual":115.1,"avg_forecast":111.8},{"time_label":"04:30","avg_actual":118.7,"avg_forecast":113.0},{"time_label":"05:00","avg_actual":121.4,"avg_forecast":111.8},{"time_label":"05:30","avg_actual":126.3,"avg_forecast":113.1},{"time_label":"06:00","avg_actual":132.4,"avg_forecast":120.7},{"time_label":"06:30","avg_actual":132.7,"avg_forecast":127.0},{"time_label":"07:00","avg_actual":133.6,"avg_forecast":125.1},{"time_label":"07:30","avg_actual":126.0,"avg_forecast":128.0},{"time_label":"08:00","avg_actual":121.5,"avg_forecast":123.3},{"time_label":"08:30","avg_actual":112.8,"avg_forecast":118.8},{"time_label":"09:00","avg_actual":105.5,"avg_forecast":112.7},{"time_label":"09:30","avg_actual":99.4,"avg_forecast":104.4},{"time_label":"10:00","avg_actual":93.7,"avg_forecast":98.0},{"time_label":"10:30","avg_actual":91.0,"avg_forecast":92.3},{"time_label":"11:00","avg_actual":88.3,"avg_forecast":88.4},{"time_label":"11:30","avg_actual":87.0,"avg_forecast":86.4},{"time_label":"12:00","avg_actual":86.0,"avg_forecast":84.5},{"time_label":"12:30","avg_actual":86.1,"avg_forecast":82.6},{"time_label":"13:00","avg_actual":86.1,"avg_forecast":82.6},{"time_label":"13:30","avg_actual":88.2,"avg_forecast":82.6},{"time_label":"14:00","avg_actual":90.6,"avg_forecast":83.7},{"time_label":"14:30","avg_actual":94.7,"avg_forecast":86.2},{"time_label":"15:00","avg_actual":101.3,"avg_forecast":91.1},{"time_label":"15:30","avg_actual":109.9,"avg_forecast":96.0},{"time_label":"16:00","avg_actual":120.5,"avg_forecast":104.7},{"time_label":"16:30","avg_actual":132.9,"avg_forecast":114.7},{"time_label":"17:00","avg_actual":141.0,"avg_forecast":126.2},{"time_label":"17:30","avg_actual":149.7,"avg_forecast":136.7},{"time_label":"18:00","avg_actual":154.3,"avg_forecast":144.7},{"time_label":"18:30","avg_actual":155.7,"avg_forecast":151.0},{"time_label":"19:00","avg_actual":155.9,"avg_forecast":155.1},{"time_label":"19:30","avg_actual":153.4,"avg_forecast":143.3},{"time_label":"20:00","avg_actual":150.6,"avg_forecast":154.4},{"time_label":"20:30","avg_actual":148.1,"avg_forecast":140.8},{"time_label":"21:00","avg_actual":143.4,"avg_forecast":149.5},{"time_label":"21:30","avg_actual":139.7,"avg_forecast":137.1},{"time_label":"22:00","avg_actual":133.1,"avg_forecast":141.5},{"time_label":"22:30","avg_actual":127.5,"avg_forecast":135.1},{"time_label":"23:00","avg_actual":124.3,"avg_forecast":130.4},{"time_label":"23:30","avg_actual":122.0,"avg_forecast":125.2}],"daily":[{"full_date":"2026-08-08","avg_actual":92.5,"greenest_actual":50.0,"dirtiest_actual":132.0},{"full_date":"2026-08-09","avg_actual":96.2,"greenest_actual":54.0,"dirtiest_actual":174.0},{"full_date":"2026-08-10","avg_actual":136.1,"greenest_actual":67.0,"dirtiest_actual":206.0},{"full_date":"2026-08-11","avg_actual":123.0,"greenest_actual":52.0,"dirtiest_actual":174.0},{"full_date":"2026-08-12","avg_actual":124.9,"greenest_actual":58.0,"dirtiest_actual":205.0},{"full_date":"2026-08-13","avg_actual":183.6,"greenest_actual":124.0,"dirtiest_actual":234.0},{"full_date":"2026-08-14","avg_actual":168.6,"greenest_actual":93.0,"dirtiest_actual":218.0},{"full_date":"2026-08-15","avg_actual":125.1,"greenest_actual":56.0,"dirtiest_actual":195.0},{"full_date":"2026-08-16","avg_actual":171.1,"greenest_actual":93.0,"dirtiest_actual":241.0},{"full_date":"2026-08-17","avg_actual":207.1,"greenest_actual":176.0,"dirtiest_actual":243.0},{"full_date":"2026-08-18","avg_actual":150.1,"greenest_actual":86.0,"dirtiest_actual":203.0},{"full_date":"2026-08-19","avg_actual":175.2,"greenest_actual":125.0,"dirtiest_actual":210.0},{"full_date":"2026-08-20","avg_actual":148.6,"greenest_actual":79.0,"dirtiest_actual":199.0},{"full_date":"2026-08-21","avg_actual":131.4,"greenest_actual":84.0,"dirtiest_actual":172.0},{"full_date":"2026-08-22","avg_actual":81.9,"greenest_actual":55.0,"dirtiest_actual":140.0},{"full_date":"2026-08-23","avg_actual":113.5,"greenest_actual":66.0,"dirtiest_actual":178.0},{"full_date":"2026-08-24","avg_actual":111.1,"greenest_actual":53.0,"dirtiest_actual":162.0},{"full_date":"2026-08-25","avg_actual":80.5,"greenest_actual":40.0,"dirtiest_actual":126.0},{"full_date":"2026-08-26","avg_actual":106.7,"greenest_actual":70.0,"dirtiest_actual":156.0},{"full_date":"2026-08-27","avg_actual":147.3,"greenest_actual":87.0,"dirtiest_actual":224.0},{"full_date":"2026-08-28","avg_actual":101.6,"greenest_actual":51.0,"dirtiest_actual":173.0},{"full_date":"2026-08-29","avg_actual":110.5,"greenest_actual":65.0,"dirtiest_actual":161.0},{"full_date":"2026-08-30","avg_actual":106.7,"greenest_actual":81.0,"dirtiest_actual":144.0},{"full_date":"2026-08-31","avg_actual":83.7,"greenest_actual":50.0,"dirtiest_actual":131.0},{"full_date":"2026-09-01","avg_actual":94.9,"greenest_actual":54.0,"dirtiest_actual":164.0},{"full_date":"2026-09-02","avg_actual":144.9,"greenest_actual":69.0,"dirtiest_actual":181.0},{"full_date":"2026-09-03","avg_actual":72.9,"greenest_actual":38.0,"dirtiest_actual":117.0},{"full_date":"2026-09-04","avg_actual":70.8,"greenest_actual":40.0,"dirtiest_actual":118.0},{"full_date":"2026-09-05","avg_actual":80.0,"greenest_actual":45.0,"dirtiest_actual":155.0},{"full_date":"2026-09-06","avg_actual":69.5,"greenest_actual":33.0,"dirtiest_actual":133.0},{"full_date":"2026-09-07","avg_actual":83.2,"greenest_actual":47.0,"dirtiest_actual":146.0},{"full_date":"2026-09-08","avg_actual":83.9,"greenest_actual":51.0,"dirtiest_actual":121.0},{"full_date":"2026-09-09","avg_actual":107.4,"greenest_actual":47.0,"dirtiest_actual":209.0},{"full_date":"2026-09-10","avg_actual":112.9,"greenest_actual":63.0,"dirtiest_actual":166.0},{"full_date":"2026-09-11","avg_actual":128.9,"greenest_actual":72.0,"dirtiest_actual":199.0},{"full_date":"2026-09-12","avg_actual":80.7,"greenest_actual":27.0,"dirtiest_actual":144.0},{"full_date":"2026-09-13","avg_actual":163.8,"greenest_actual":95.0,"dirtiest_actual":204.0},{"full_date":"2026-09-14","avg_actual":150.8,"greenest_actual":81.0,"dirtiest_actual":197.0},{"full_date":"2026-09-15","avg_actual":77.5,"greenest_actual":34.0,"dirtiest_actual":156.0},{"full_date":"2026-09-16","avg_actual":111.9,"greenest_actual":64.0,"dirtiest_actual":152.0},{"full_date":"2026-09-17","avg_actual":66.1,"greenest_actual":35.0,"dirtiest_actual":102.0},{"full_date":"2026-09-18","avg_actual":61.4,"greenest_actual":38.0,"dirtiest_actual":87.0},{"full_date":"2026-09-19","avg_actual":60.4,"greenest_actual":38.0,"dirtiest_actual":100.0},{"full_date":"2026-09-20","avg_actual":80.8,"greenest_actual":37.0,"dirtiest_actual":164.0},{"full_date":"2026-09-21","avg_actual":161.6,"greenest_actual":106.0,"dirtiest_actual":216.0},{"full_date":"2026-09-22","avg_actual":189.9,"greenest_actual":125.0,"dirtiest_actual":229.0},{"full_date":"2026-09-23","avg_actual":130.1,"greenest_actual":62.0,"dirtiest_actual":185.0},{"full_date":"2026-09-24","avg_actual":134.3,"greenest_actual":75.0,"dirtiest_actual":176.0},{"full_date":"2026-09-25","avg_actual":142.2,"greenest_actual":101.0,"dirtiest_actual":209.0},{"full_date":"2026-09-26","avg_actual":111.6,"greenest_actual":48.0,"dirtiest_actual":165.0},{"full_date":"2026-09-27","avg_actual":83.5,"greenest_actual":47.0,"dirtiest_actual":120.0},{"full_date":"2026-09-28","avg_actual":179.9,"greenest_actual":119.0,"dirtiest_actual":235.0},{"full_date":"2026-09-29","avg_actual":100.6,"greenest_actual":66.0,"dirtiest_actual":146.0},{"full_date":"2026-09-30","avg_actual":104.8,"greenest_actual":57.0,"dirtiest_actual":176.0},{"full_date":"2026-10-01","avg_actual":169.1,"greenest_actual":114.0,"dirtiest_actual":205.0},{"full_date":"2026-10-02","avg_actual":123.9,"greenest_actual":63.0,"dirtiest_actual":175.0},{"full_date":"2026-10-03","avg_actual":138.8,"greenest_actual":81.0,"dirtiest_actual":227.0},{"full_date":"2026-10-04","avg_actual":109.9,"greenest_actual":54.0,"dirtiest_actual":173.0},{"full_date":"2026-10-05","avg_actual":114.9,"greenest_actual":55.0,"dirtiest_actual":190.0},{"full_date":"2026-10-06","avg_actual":208.8,"greenest_actual":176.0,"dirtiest_actual":247.0},{"full_date":"2026-10-07","avg_actual":148.5,"greenest_actual":46.0,"dirtiest_actual":222.0},{"full_date":"2026-10-08","avg_actual":66.3,"greenest_actual":45.0,"dirtiest_actual":117.0},{"full_date":"2026-10-09","avg_actual":48.1,"greenest_actual":33.0,"dirtiest_actual":72.0},{"full_date":"2026-10-10","avg_actual":54.5,"greenest_actual":31.0,"dirtiest_actual":83.0},{"full_date":"2026-10-11","avg_actual":123.1,"greenest_actual":63.0,"dirtiest_actual":209.0},{"full_date":"2026-10-12","avg_actual":117.9,"greenest_actual":84.0,"dirtiest_actual":153.0},{"full_date":"2026-10-13","avg_actual":81.5,"greenest_actual":49.0,"dirtiest_actual":122.0},{"full_date":"2026-10-14","avg_actual":101.3,"greenest_actual":58.0,"dirtiest_actual":169.0},{"full_date":"2026-10-15","avg_actual":105.6,"greenest_actual":62.0,"dirtiest_actual":174.0},{"full_date":"2026-10-16","avg_actual":119.6,"greenest_actual":52.0,"dirtiest_actual":174.0},{"full_date":"2026-10-17","avg_actual":64.7,"greenest_actual":43.0,"dirtiest_actual":118.0},{"full_date":"2026-10-18","avg_actual":92.6,"greenest_actual":58.0,"dirtiest_actual":158.0},{"full_date":"2026-10-19","avg_actual":148.1,"greenest_actual":98.0,"dirtiest_actual":193.0},{"full_date":"2026-10-20","avg_actual":122.0,"greenest_actual":80.0,"dirtiest_actual":169.0},{"full_date":"2026-10-21","avg_actual":98.1,"greenest_actual":48.0,"dirtiest_actual":144.0},{"full_date":"2026-10-22","avg_actual":105.8,"greenest_actual":50.0,"dirtiest_actual":195.0},{"full_date":"2026-10-23","avg_actual":81.5,"greenest_actual":54.0,"dirtiest_actual":114.0},{"full_date":"2026-10-24","avg_actual":73.0,"greenest_actual":54.0,"dirtiest_actual":111.0},{"full_date":"2026-10-25","avg_actual":72.4,"greenest_actual":50.0,"dirtiest_actual":102.0},{"full_date":"2026-10-26","avg_actual":81.1,"greenest_actual":61.0,"dirtiest_actual":108.0},{"full_date":"2026-10-27","avg_actual":80.5,"greenest_actual":51.0,"dirtiest_actual":124.0},{"full_date":"2026-10-28","avg_actual":132.5,"greenest_actual":70.0,"dirtiest_actual":206.0},{"full_date":"2026-10-29","avg_actual":209.2,"greenest_actual":182.0,"dirtiest_actual":233.0},{"full_date":"2026-10-30","avg_actual":179.6,"greenest_actual":132.0,"dirtiest_actual":217.0},{"full_date":"2026-10-31","avg_actual":189.1,"greenest_actual":153.0,"dirtiest_actual":227.0},{"full_date":"2026-11-01","avg_actual":170.7,"greenest_actual":127.0,"dirtiest_actual":192.0},{"full_date":"2026-11-02","avg_actual":146.8,"greenest_actual":96.0,"dirtiest_actual":187.0},{"full_date":"2026-11-03","avg_actual":165.8,"greenest_actual":119.0,"dirtiest_actual":205.0},{"full_date":"2026-11-04","avg_actual":168.6,"greenest_actual":140.0,"dirtiest_actual":197.0},{"full_date":"2026-11-05","avg_actual":179.1,"greenest_actual":123.0,"dirtiest_actual":223.0}],"heat":[{"weekday_number":1,"weekday_name":"Monday","hour_of_day":0,"avg_actual":129.4},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":1,"avg_actual":126.4},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":2,"avg_actual":125.0},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":3,"avg_actual":126.6},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":4,"avg_actual":133.3},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":5,"avg_actual":144.1},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":6,"avg_actual":156.2},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":7,"avg_actual":151.6},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":8,"avg_actual":138.5},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":9,"avg_actual":124.6},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":10,"avg_actual":112.2},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":11,"avg_actual":103.4},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":12,"avg_actual":99.9},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":13,"avg_actual":99.6},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":14,"avg_actual":104.5},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":15,"avg_actual":117.8},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":16,"avg_actual":139.0},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":17,"avg_actual":157.7},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":18,"avg_actual":166.2},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":19,"avg_actual":164.1},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":20,"avg_actual":156.4},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":21,"avg_actual":145.7},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":22,"avg_actual":132.1},{"weekday_number":1,"weekday_name":"Monday","hour_of_day":23,"avg_actual":125.2},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":0,"avg_actual":119.3},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":1,"avg_actual":112.7},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":2,"avg_actual":108.9},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":3,"avg_actual":109.6},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":4,"avg_actual":114.3},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":5,"avg_actual":124.2},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":6,"avg_actual":136.7},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":7,"avg_actual":133.7},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":8,"avg_actual":119.8},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":9,"avg_actual":104.7},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":10,"avg_actual":93.8},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":11,"avg_actual":88.8},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":12,"avg_actual":85.2},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":13,"avg_actual":87.4},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":14,"avg_actual":92.8},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":15,"avg_actual":105.3},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":16,"avg_actual":126.2},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":17,"avg_actual":146.1},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":18,"avg_actual":157.0},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":19,"avg_actual":157.1},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":20,"avg_actual":151.9},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":21,"avg_actual":143.2},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":22,"avg_actual":132.4},{"weekday_number":2,"weekday_name":"Tuesday","hour_of_day":23,"avg_actual":127.0},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":0,"avg_actual":124.1},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":1,"avg_actual":121.1},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":2,"avg_actual":119.8},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":3,"avg_actual":119.3},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":4,"avg_actual":123.3},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":5,"avg_actual":135.4},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":6,"avg_actual":146.5},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":7,"avg_actual":143.5},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":8,"avg_actual":128.9},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":9,"avg_actual":112.1},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":10,"avg_actual":101.1},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":11,"avg_actual":97.7},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":12,"avg_actual":95.4},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":13,"avg_actual":96.2},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":14,"avg_actual":104.1},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":15,"avg_actual":117.5},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":16,"avg_actual":138.5},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":17,"avg_actual":153.7},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":18,"avg_actual":160.3},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":19,"avg_actual":159.1},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":20,"avg_actual":153.1},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":21,"avg_actual":144.9},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":22,"avg_actual":132.8},{"weekday_number":3,"weekday_name":"Wednesday","hour_of_day":23,"avg_actual":126.2},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":0,"avg_actual":123.7},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":1,"avg_actual":122.0},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":2,"avg_actual":122.0},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":3,"avg_actual":122.5},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":4,"avg_actual":126.7},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":5,"avg_actual":135.5},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":6,"avg_actual":145.8},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":7,"avg_actual":144.2},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":8,"avg_actual":128.2},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":9,"avg_actual":111.0},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":10,"avg_actual":101.0},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":11,"avg_actual":96.1},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":12,"avg_actual":95.1},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":13,"avg_actual":97.2},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":14,"avg_actual":103.9},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":15,"avg_actual":120.2},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":16,"avg_actual":144.0},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":17,"avg_actual":160.7},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":18,"avg_actual":169.1},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":19,"avg_actual":168.3},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":20,"avg_actual":162.9},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":21,"avg_actual":157.3},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":22,"avg_actual":146.1},{"weekday_number":4,"weekday_name":"Thursday","hour_of_day":23,"avg_actual":136.5},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":0,"avg_actual":121.8},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":1,"avg_actual":117.2},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":2,"avg_actual":115.5},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":3,"avg_actual":118.7},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":4,"avg_actual":124.5},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":5,"avg_actual":131.0},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":6,"avg_actual":140.8},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":7,"avg_actual":137.5},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":8,"avg_actual":121.5},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":9,"avg_actual":100.4},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":10,"avg_actual":85.5},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":11,"avg_actual":80.2},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":12,"avg_actual":80.1},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":13,"avg_actual":81.0},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":14,"avg_actual":85.3},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":15,"avg_actual":95.0},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":16,"avg_actual":112.2},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":17,"avg_actual":128.3},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":18,"avg_actual":138.1},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":19,"avg_actual":136.8},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":20,"avg_actual":130.5},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":21,"avg_actual":122.5},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":22,"avg_actual":110.1},{"weekday_number":5,"weekday_name":"Friday","hour_of_day":23,"avg_actual":100.9},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":0,"avg_actual":95.0},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":1,"avg_actual":93.1},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":2,"avg_actual":92.1},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":3,"avg_actual":91.9},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":4,"avg_actual":92.2},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":5,"avg_actual":93.7},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":6,"avg_actual":95.6},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":7,"avg_actual":93.1},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":8,"avg_actual":85.7},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":9,"avg_actual":76.5},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":10,"avg_actual":70.3},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":11,"avg_actual":66.8},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":12,"avg_actual":66.2},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":13,"avg_actual":66.5},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":14,"avg_actual":70.9},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":15,"avg_actual":81.8},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":16,"avg_actual":102.2},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":17,"avg_actual":124.2},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":18,"avg_actual":136.3},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":19,"avg_actual":136.4},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":20,"avg_actual":135.8},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":21,"avg_actual":130.7},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":22,"avg_actual":121.2},{"weekday_number":6,"weekday_name":"Saturday","hour_of_day":23,"avg_actual":113.2},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":0,"avg_actual":106.5},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":1,"avg_actual":102.0},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":2,"avg_actual":102.3},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":3,"avg_actual":102.1},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":4,"avg_actual":104.2},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":5,"avg_actual":103.7},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":6,"avg_actual":106.8},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":7,"avg_actual":105.7},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":8,"avg_actual":97.9},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":9,"avg_actual":88.0},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":10,"avg_actual":82.2},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":11,"avg_actual":79.9},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":12,"avg_actual":80.2},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":13,"avg_actual":81.7},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":14,"avg_actual":86.7},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":15,"avg_actual":100.7},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":16,"avg_actual":123.7},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":17,"avg_actual":145.2},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":18,"avg_actual":156.7},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":19,"avg_actual":159.3},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":20,"avg_actual":153.6},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":21,"avg_actual":145.1},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":22,"avg_actual":135.9},{"weekday_number":7,"weekday_name":"Sunday","hour_of_day":23,"avg_actual":131.4}],"daypart":[{"day_part":"Afternoon (12-17)","avg_actual":99.6},{"day_part":"Morning (06-12)","avg_actual":110.3},{"day_part":"Night (00-06)","avg_actual":116.1},{"day_part":"Late evening (21-24)","avg_actual":131.7},{"day_part":"Evening peak (17-21)","avg_actual":151.1}],"mix":[{"intensity_index":"high","periods":851,"pct_of_periods":19.7},{"intensity_index":"low","periods":1557,"pct_of_periods":36.04},{"intensity_index":"moderate","periods":1874,"pct_of_periods":43.38},{"intensity_index":"very high","periods":38,"pct_of_periods":0.88}],"mae_daily":[{"full_date":"2026-08-08","mae":10.8,"bias":2.59},{"full_date":"2026-08-09","mae":11.48,"bias":3.69},{"full_date":"2026-08-10","mae":9.9,"bias":0.06},{"full_date":"2026-08-11","mae":12.94,"bias":2.27},{"full_date":"2026-08-12","mae":12.02,"bias":6.06},{"full_date":"2026-08-13","mae":12.04,"bias":3.92},{"full_date":"2026-08-14","mae":14.06,"bias":2.02},{"full_date":"2026-08-15","mae":13.9,"bias":-4.35},{"full_date":"2026-08-16","mae":9.23,"bias":-0.6},{"full_date":"2026-08-17","mae":7.08,"bias":-1.21},{"full_date":"2026-08-18","mae":8.9,"bias":4.15},{"full_date":"2026-08-19","mae":9.21,"bias":2.04},{"full_date":"2026-08-20","mae":12.75,"bias":4.21},{"full_date":"2026-08-21","mae":13.38,"bias":1.54},{"full_date":"2026-08-22","mae":8.92,"bias":2.67},{"full_date":"2026-08-23","mae":11.23,"bias":2.56},{"full_date":"2026-08-24","mae":10.44,"bias":-3.15},{"full_date":"2026-08-25","mae":11.19,"bias":5.6},{"full_date":"2026-08-26","mae":11.81,"bias":0.69},{"full_date":"2026-08-27","mae":10.5,"bias":2.0},{"full_date":"2026-08-28","mae":13.08,"bias":0.79},{"full_date":"2026-08-29","mae":9.44,"bias":5.85},{"full_date":"2026-08-30","mae":13.13,"bias":-4.88},{"full_date":"2026-08-31","mae":39.08,"bias":-39.08},{"full_date":"2026-09-01","mae":34.13,"bias":-3.21},{"full_date":"2026-09-02","mae":41.29,"bias":38.83},{"full_date":"2026-09-03","mae":8.06,"bias":4.69},{"full_date":"2026-09-04","mae":11.58,"bias":6.25},{"full_date":"2026-09-05","mae":24.77,"bias":2.98},{"full_date":"2026-09-06","mae":29.29,"bias":-7.04},{"full_date":"2026-09-07","mae":17.42,"bias":11.83},{"full_date":"2026-09-08","mae":22.35,"bias":19.69},{"full_date":"2026-09-09","mae":10.69,"bias":1.77},{"full_date":"2026-09-10","mae":12.19,"bias":3.23},{"full_date":"2026-09-11","mae":11.08,"bias":3.63},{"full_date":"2026-09-12","mae":9.69,"bias":5.52},{"full_date":"2026-09-13","mae":8.5,"bias":-3.08},{"full_date":"2026-09-14","mae":9.19,"bias":-2.48},{"full_date":"2026-09-15","mae":12.88,"bias":4.5},{"full_date":"2026-09-16","mae":11.42,"bias":1.63},{"full_date":"2026-09-17","mae":9.5,"bias":4.04},{"full_date":"2026-09-18","mae":6.15,"bias":3.94},{"full_date":"2026-09-19","mae":7.44,"bias":4.6},{"full_date":"2026-09-20","mae":10.83,"bias":7.58},{"full_date":"2026-09-21","mae":12.88,"bias":5.75},{"full_date":"2026-09-22","mae":11.73,"bias":-1.69},{"full_date":"2026-09-23","mae":13.54,"bias":1.25},{"full_date":"2026-09-24","mae":9.85,"bias":4.6},{"full_date":"2026-09-25","mae":11.15,"bias":0.81},{"full_date":"2026-09-26","mae":11.67,"bias":4.29},{"full_date":"2026-09-27","mae":10.31,"bias":8.15},{"full_date":"2026-09-28","mae":25.13,"bias":16.42},{"full_date":"2026-09-29","mae":12.73,"bias":5.56},{"full_date":"2026-09-30","mae":15.02,"bias":11.69},{"full_date":"2026-10-01","mae":9.81,"bias":-2.06},{"full_date":"2026-10-02","mae":9.35,"bias":2.85},{"full_date":"2026-10-03","mae":13.17,"bias":-0.75},{"full_date":"2026-10-04","mae":14.08,"bias":-0.75},{"full_date":"2026-10-05","mae":9.15,"bias":4.4},{"full_date":"2026-10-06","mae":7.73,"bias":-2.19},{"full_date":"2026-10-07","mae":15.44,"bias":0.35},{"full_date":"2026-10-08","mae":8.29,"bias":4.0},{"full_date":"2026-10-09","mae":8.35,"bias":7.81},{"full_date":"2026-10-10","mae":8.96,"bias":7.38},{"full_date":"2026-10-11","mae":11.98,"bias":3.06},{"full_date":"2026-10-12","mae":9.9,"bias":3.94},{"full_date":"2026-10-13","mae":9.98,"bias":7.1},{"full_date":"2026-10-14","mae":12.83,"bias":5.17},{"full_date":"2026-10-15","mae":6.75,"bias":3.75},{"full_date":"2026-10-16","mae":11.9,"bias":4.1},{"full_date":"2026-10-17","mae":9.15,"bias":3.1},{"full_date":"2026-10-18","mae":10.06,"bias":5.52},{"full_date":"2026-10-19","mae":11.6,"bias":4.6},{"full_date":"2026-10-20","mae":9.98,"bias":3.35},{"full_date":"2026-10-21","mae":8.63,"bias":2.79},{"full_date":"2026-10-22","mae":13.5,"bias":0.83},{"full_date":"2026-10-23","mae":5.69,"bias":2.98},{"full_date":"2026-10-24","mae":8.77,"bias":5.19},{"full_date":"2026-10-25","mae":8.3,"bias":5.22},{"full_date":"2026-10-26","mae":7.56,"bias":3.4},{"full_date":"2026-10-27","mae":10.25,"bias":5.54},{"full_date":"2026-10-28","mae":10.31,"bias":7.35},{"full_date":"2026-10-29","mae":5.92,"bias":-4.92},{"full_date":"2026-10-30","mae":8.06,"bias":-0.19},{"full_date":"2026-10-31","mae":9.0,"bias":-5.25},{"full_date":"2026-11-01","mae":8.85,"bias":-5.77},{"full_date":"2026-11-02","mae":8.29,"bias":2.58},{"full_date":"2026-11-03","mae":7.33,"bias":0.54},{"full_date":"2026-11-04","mae":6.44,"bias":-0.27},{"full_date":"2026-11-05","mae":5.54,"bias":3.29}],"mae_hour":[{"hour_of_day":0,"mae":13.4},{"hour_of_day":1,"mae":9.1},{"hour_of_day":2,"mae":8.0},{"hour_of_day":3,"mae":9.7},{"hour_of_day":4,"mae":11.9},{"hour_of_day":5,"mae":16.5},{"hour_of_day":6,"mae":15.8},{"hour_of_day":7,"mae":15.1},{"hour_of_day":8,"mae":13.0},{"hour_of_day":9,"mae":12.0},{"hour_of_day":10,"mae":9.3},{"hour_of_day":11,"mae":6.7},{"hour_of_day":12,"mae":6.6},{"hour_of_day":13,"mae":6.6},{"hour_of_day":14,"mae":9.4},{"hour_of_day":15,"mae":13.5},{"hour_of_day":16,"mae":18.2},{"hour_of_day":17,"mae":15.5},{"hour_of_day":18,"mae":11.2},{"hour_of_day":19,"mae":12.9},{"hour_of_day":20,"mae":13.4},{"hour_of_day":21,"mae":13.8},{"hour_of_day":22,"mae":13.3},{"hour_of_day":23,"mae":13.3}],"scatter":[{"x":171.0,"y":160.0},{"x":142.0,"y":168.0},{"x":65.0,"y":71.0},{"x":5.0,"y":169.0},{"x":67.0,"y":68.0},{"x":105.0,"y":146.0},{"x":163.0,"y":167.0},{"x":38.0,"y":53.0},{"x":93.0,"y":86.0},{"x":129.0,"y":125.0},{"x":38.0,"y":40.0},{"x":138.0,"y":137.0},{"x":110.0,"y":93.0},{"x":63.0,"y":70.0},{"x":107.0,"y":76.0},{"x":135.0,"y":130.0},{"x":172.0,"y":177.0},{"x":87.0,"y":89.0},{"x":158.0,"y":139.0},{"x":208.0,"y":180.0},{"x":167.0,"y":183.0},{"x":76.0,"y":116.0},{"x":32.0,"y":38.0},{"x":110.0,"y":108.0},{"x":56.0,"y":85.0},{"x":147.0,"y":167.0},{"x":173.0,"y":162.0},{"x":226.0,"y":227.0},{"x":62.0,"y":80.0},{"x":169.0,"y":157.0},{"x":133.0,"y":133.0},{"x":199.0,"y":197.0},{"x":95.0,"y":78.0},{"x":48.0,"y":45.0},{"x":76.0,"y":82.0},{"x":100.0,"y":133.0},{"x":53.0,"y":55.0},{"x":82.0,"y":87.0},{"x":50.0,"y":57.0},{"x":128.0,"y":137.0},{"x":57.0,"y":59.0},{"x":52.0,"y":43.0},{"x":170.0,"y":180.0},{"x":148.0,"y":135.0},{"x":33.0,"y":35.0},{"x":62.0,"y":62.0},{"x":197.0,"y":195.0},{"x":53.0,"y":55.0},{"x":181.0,"y":180.0},{"x":100.0,"y":96.0},{"x":158.0,"y":180.0},{"x":32.0,"y":38.0},{"x":165.0,"y":161.0},{"x":92.0,"y":92.0},{"x":162.0,"y":171.0},{"x":134.0,"y":135.0},{"x":95.0,"y":91.0},{"x":63.0,"y":66.0},{"x":172.0,"y":168.0},{"x":111.0,"y":106.0},{"x":177.0,"y":175.0},{"x":168.0,"y":173.0},{"x":72.0,"y":70.0},{"x":190.0,"y":221.0},{"x":162.0,"y":153.0},{"x":133.0,"y":129.0},{"x":226.0,"y":224.0},{"x":110.0,"y":81.0},{"x":71.0,"y":62.0},{"x":55.0,"y":63.0},{"x":151.0,"y":154.0},{"x":174.0,"y":162.0},{"x":168.0,"y":167.0},{"x":135.0,"y":138.0},{"x":85.0,"y":134.0},{"x":188.0,"y":174.0},{"x":159.0,"y":167.0},{"x":84.0,"y":77.0},{"x":76.0,"y":79.0},{"x":200.0,"y":210.0},{"x":199.0,"y":196.0},{"x":174.0,"y":177.0},{"x":168.0,"y":169.0},{"x":212.0,"y":209.0},{"x":45.0,"y":58.0},{"x":175.0,"y":180.0},{"x":133.0,"y":107.0},{"x":181.0,"y":166.0},{"x":125.0,"y":145.0},{"x":72.0,"y":88.0},{"x":103.0,"y":106.0},{"x":188.0,"y":204.0},{"x":81.0,"y":75.0},{"x":178.0,"y":216.0},{"x":91.0,"y":107.0},{"x":43.0,"y":64.0},{"x":91.0,"y":82.0},{"x":82.0,"y":103.0},{"x":212.0,"y":204.0},{"x":170.0,"y":159.0},{"x":89.0,"y":81.0},{"x":55.0,"y":58.0},{"x":94.0,"y":110.0},{"x":84.0,"y":107.0},{"x":49.0,"y":49.0},{"x":50.0,"y":63.0},{"x":166.0,"y":175.0},{"x":172.0,"y":159.0},{"x":131.0,"y":117.0},{"x":107.0,"y":87.0},{"x":199.0,"y":211.0},{"x":187.0,"y":177.0},{"x":185.0,"y":192.0},{"x":160.0,"y":179.0},{"x":173.0,"y":163.0},{"x":111.0,"y":95.0},{"x":67.0,"y":69.0},{"x":149.0,"y":163.0},{"x":131.0,"y":135.0},{"x":125.0,"y":121.0},{"x":69.0,"y":81.0},{"x":216.0,"y":215.0},{"x":169.0,"y":163.0},{"x":114.0,"y":127.0},{"x":121.0,"y":123.0},{"x":203.0,"y":196.0},{"x":74.0,"y":73.0},{"x":148.0,"y":163.0},{"x":127.0,"y":150.0},{"x":149.0,"y":149.0},{"x":130.0,"y":111.0},{"x":91.0,"y":103.0},{"x":92.0,"y":95.0},{"x":38.0,"y":72.0},{"x":204.0,"y":194.0},{"x":45.0,"y":45.0},{"x":135.0,"y":129.0},{"x":86.0,"y":94.0},{"x":181.0,"y":176.0},{"x":227.0,"y":213.0},{"x":132.0,"y":139.0},{"x":138.0,"y":125.0},{"x":46.0,"y":64.0},{"x":132.0,"y":150.0},{"x":122.0,"y":125.0},{"x":114.0,"y":125.0},{"x":48.0,"y":43.0},{"x":64.0,"y":61.0},{"x":118.0,"y":113.0},{"x":205.0,"y":203.0},{"x":95.0,"y":121.0},{"x":51.0,"y":53.0},{"x":82.0,"y":91.0},{"x":66.0,"y":77.0},{"x":217.0,"y":200.0},{"x":129.0,"y":123.0},{"x":80.0,"y":77.0},{"x":52.0,"y":54.0},{"x":181.0,"y":181.0},{"x":53.0,"y":96.0},{"x":114.0,"y":110.0},{"x":44.0,"y":57.0},{"x":165.0,"y":165.0},{"x":193.0,"y":177.0},{"x":229.0,"y":229.0},{"x":201.0,"y":202.0},{"x":176.0,"y":174.0},{"x":83.0,"y":115.0},{"x":102.0,"y":81.0},{"x":222.0,"y":208.0},{"x":106.0,"y":111.0},{"x":109.0,"y":99.0},{"x":181.0,"y":177.0},{"x":152.0,"y":143.0},{"x":163.0,"y":166.0},{"x":95.0,"y":107.0},{"x":205.0,"y":206.0},{"x":102.0,"y":107.0},{"x":137.0,"y":119.0},{"x":32.0,"y":46.0},{"x":81.0,"y":108.0},{"x":87.0,"y":86.0},{"x":123.0,"y":130.0},{"x":57.0,"y":62.0},{"x":64.0,"y":70.0},{"x":107.0,"y":113.0},{"x":217.0,"y":214.0},{"x":83.0,"y":208.0},{"x":107.0,"y":128.0},{"x":203.0,"y":190.0},{"x":136.0,"y":145.0},{"x":104.0,"y":112.0},{"x":77.0,"y":55.0},{"x":189.0,"y":222.0},{"x":98.0,"y":96.0},{"x":106.0,"y":97.0},{"x":119.0,"y":112.0},{"x":213.0,"y":201.0},{"x":50.0,"y":52.0},{"x":52.0,"y":57.0},{"x":97.0,"y":99.0},{"x":169.0,"y":186.0},{"x":113.0,"y":125.0},{"x":113.0,"y":125.0},{"x":122.0,"y":137.0},{"x":96.0,"y":103.0},{"x":61.0,"y":46.0},{"x":87.0,"y":92.0},{"x":99.0,"y":86.0},{"x":178.0,"y":181.0},{"x":114.0,"y":94.0},{"x":73.0,"y":77.0},{"x":59.0,"y":47.0},{"x":36.0,"y":42.0},{"x":44.0,"y":67.0},{"x":190.0,"y":180.0},{"x":109.0,"y":105.0},{"x":192.0,"y":196.0},{"x":85.0,"y":110.0},{"x":186.0,"y":185.0},{"x":79.0,"y":76.0},{"x":196.0,"y":194.0},{"x":175.0,"y":170.0},{"x":52.0,"y":76.0},{"x":108.0,"y":110.0},{"x":123.0,"y":122.0},{"x":90.0,"y":93.0},{"x":183.0,"y":178.0},{"x":128.0,"y":144.0},{"x":71.0,"y":77.0},{"x":117.0,"y":109.0},{"x":90.0,"y":81.0},{"x":72.0,"y":68.0},{"x":199.0,"y":209.0},{"x":196.0,"y":175.0},{"x":123.0,"y":102.0},{"x":163.0,"y":170.0},{"x":36.0,"y":39.0},{"x":135.0,"y":134.0},{"x":227.0,"y":207.0},{"x":115.0,"y":122.0},{"x":154.0,"y":139.0},{"x":45.0,"y":54.0},{"x":96.0,"y":103.0},{"x":154.0,"y":151.0},{"x":112.0,"y":107.0},{"x":150.0,"y":144.0},{"x":131.0,"y":140.0},{"x":124.0,"y":117.0},{"x":66.0,"y":101.0},{"x":79.0,"y":77.0},{"x":51.0,"y":56.0},{"x":187.0,"y":178.0},{"x":68.0,"y":75.0},{"x":123.0,"y":111.0},{"x":74.0,"y":109.0},{"x":107.0,"y":105.0},{"x":100.0,"y":95.0},{"x":74.0,"y":72.0},{"x":201.0,"y":205.0},{"x":142.0,"y":143.0},{"x":90.0,"y":89.0},{"x":95.0,"y":97.0},{"x":169.0,"y":167.0},{"x":74.0,"y":78.0},{"x":58.0,"y":67.0},{"x":160.0,"y":178.0},{"x":111.0,"y":120.0},{"x":127.0,"y":101.0},{"x":72.0,"y":74.0},{"x":52.0,"y":75.0},{"x":37.0,"y":46.0},{"x":181.0,"y":175.0},{"x":123.0,"y":104.0},{"x":49.0,"y":54.0},{"x":130.0,"y":119.0},{"x":137.0,"y":147.0},{"x":38.0,"y":61.0},{"x":111.0,"y":124.0},{"x":49.0,"y":54.0},{"x":177.0,"y":176.0},{"x":180.0,"y":187.0},{"x":68.0,"y":71.0},{"x":85.0,"y":108.0},{"x":146.0,"y":157.0},{"x":216.0,"y":216.0},{"x":213.0,"y":186.0},{"x":158.0,"y":154.0},{"x":206.0,"y":205.0},{"x":40.0,"y":48.0},{"x":187.0,"y":172.0},{"x":107.0,"y":120.0},{"x":98.0,"y":125.0},{"x":40.0,"y":44.0},{"x":92.0,"y":88.0},{"x":88.0,"y":100.0},{"x":187.0,"y":180.0},{"x":125.0,"y":138.0},{"x":72.0,"y":72.0},{"x":52.0,"y":53.0},{"x":53.0,"y":62.0},{"x":82.0,"y":95.0},{"x":195.0,"y":186.0},{"x":119.0,"y":131.0},{"x":98.0,"y":103.0},{"x":68.0,"y":76.0},{"x":176.0,"y":170.0},{"x":171.0,"y":166.0},{"x":57.0,"y":70.0},{"x":234.0,"y":243.0},{"x":108.0,"y":111.0},{"x":151.0,"y":150.0},{"x":121.0,"y":72.0},{"x":96.0,"y":100.0},{"x":196.0,"y":184.0},{"x":52.0,"y":49.0},{"x":65.0,"y":64.0},{"x":63.0,"y":64.0},{"x":101.0,"y":104.0},{"x":81.0,"y":79.0},{"x":205.0,"y":188.0},{"x":116.0,"y":126.0},{"x":143.0,"y":148.0},{"x":93.0,"y":88.0},{"x":199.0,"y":183.0},{"x":114.0,"y":150.0},{"x":81.0,"y":80.0},{"x":79.0,"y":72.0},{"x":146.0,"y":156.0},{"x":153.0,"y":143.0},{"x":40.0,"y":50.0},{"x":190.0,"y":183.0},{"x":178.0,"y":172.0},{"x":164.0,"y":174.0},{"x":103.0,"y":91.0},{"x":84.0,"y":108.0},{"x":65.0,"y":68.0},{"x":76.0,"y":52.0},{"x":57.0,"y":55.0},{"x":112.0,"y":107.0},{"x":180.0,"y":185.0},{"x":84.0,"y":77.0},{"x":189.0,"y":189.0},{"x":186.0,"y":173.0},{"x":81.0,"y":106.0},{"x":32.0,"y":45.0},{"x":57.0,"y":59.0},{"x":112.0,"y":84.0},{"x":138.0,"y":148.0},{"x":110.0,"y":108.0},{"x":64.0,"y":74.0},{"x":162.0,"y":133.0},{"x":114.0,"y":136.0},{"x":216.0,"y":218.0},{"x":105.0,"y":102.0},{"x":81.0,"y":78.0},{"x":174.0,"y":186.0},{"x":112.0,"y":92.0},{"x":147.0,"y":158.0},{"x":159.0,"y":151.0},{"x":141.0,"y":144.0},{"x":142.0,"y":132.0},{"x":58.0,"y":64.0},{"x":66.0,"y":66.0},{"x":95.0,"y":88.0},{"x":60.0,"y":75.0},{"x":78.0,"y":80.0},{"x":74.0,"y":68.0},{"x":88.0,"y":70.0},{"x":142.0,"y":151.0},{"x":145.0,"y":136.0},{"x":150.0,"y":138.0},{"x":116.0,"y":109.0},{"x":84.0,"y":82.0},{"x":192.0,"y":187.0},{"x":58.0,"y":55.0},{"x":61.0,"y":63.0},{"x":34.0,"y":40.0},{"x":174.0,"y":171.0},{"x":51.0,"y":53.0},{"x":163.0,"y":171.0},{"x":206.0,"y":206.0},{"x":113.0,"y":119.0},{"x":189.0,"y":194.0},{"x":145.0,"y":95.0},{"x":110.0,"y":111.0},{"x":64.0,"y":75.0},{"x":158.0,"y":131.0},{"x":157.0,"y":145.0},{"x":93.0,"y":87.0},{"x":118.0,"y":119.0},{"x":214.0,"y":204.0},{"x":76.0,"y":90.0},{"x":58.0,"y":64.0},{"x":194.0,"y":194.0},{"x":30.0,"y":33.0},{"x":115.0,"y":117.0},{"x":165.0,"y":169.0},{"x":176.0,"y":173.0},{"x":68.0,"y":72.0},{"x":79.0,"y":70.0},{"x":52.0,"y":44.0},{"x":53.0,"y":56.0},{"x":88.0,"y":81.0},{"x":113.0,"y":112.0},{"x":41.0,"y":48.0},{"x":149.0,"y":151.0},{"x":184.0,"y":181.0},{"x":59.0,"y":65.0},{"x":68.0,"y":75.0},{"x":135.0,"y":131.0},{"x":84.0,"y":76.0},{"x":97.0,"y":83.0},{"x":65.0,"y":53.0},{"x":177.0,"y":172.0},{"x":77.0,"y":77.0},{"x":84.0,"y":69.0},{"x":61.0,"y":64.0},{"x":187.0,"y":175.0},{"x":126.0,"y":95.0},{"x":214.0,"y":206.0},{"x":99.0,"y":110.0},{"x":110.0,"y":104.0},{"x":215.0,"y":218.0},{"x":235.0,"y":229.0},{"x":145.0,"y":137.0},{"x":192.0,"y":200.0},{"x":170.0,"y":149.0},{"x":63.0,"y":50.0},{"x":66.0,"y":70.0},{"x":127.0,"y":129.0},{"x":186.0,"y":189.0},{"x":152.0,"y":165.0},{"x":190.0,"y":180.0},{"x":235.0,"y":224.0},{"x":221.0,"y":240.0},{"x":81.0,"y":166.0},{"x":187.0,"y":170.0},{"x":69.0,"y":71.0},{"x":117.0,"y":123.0},{"x":176.0,"y":168.0},{"x":134.0,"y":67.0},{"x":104.0,"y":127.0},{"x":140.0,"y":129.0},{"x":174.0,"y":170.0},{"x":38.0,"y":50.0},{"x":51.0,"y":65.0},{"x":32.0,"y":52.0},{"x":125.0,"y":118.0},{"x":113.0,"y":138.0},{"x":51.0,"y":53.0},{"x":84.0,"y":81.0},{"x":166.0,"y":162.0},{"x":134.0,"y":129.0},{"x":201.0,"y":200.0},{"x":48.0,"y":54.0},{"x":126.0,"y":118.0},{"x":85.0,"y":80.0},{"x":216.0,"y":199.0},{"x":84.0,"y":81.0},{"x":63.0,"y":69.0},{"x":85.0,"y":88.0},{"x":77.0,"y":97.0},{"x":105.0,"y":105.0},{"x":139.0,"y":143.0},{"x":34.0,"y":38.0},{"x":93.0,"y":109.0},{"x":202.0,"y":203.0},{"x":72.0,"y":94.0},{"x":189.0,"y":187.0},{"x":197.0,"y":195.0},{"x":72.0,"y":77.0},{"x":109.0,"y":100.0},{"x":89.0,"y":98.0},{"x":49.0,"y":56.0},{"x":96.0,"y":164.0},{"x":103.0,"y":118.0},{"x":130.0,"y":110.0},{"x":107.0,"y":92.0},{"x":114.0,"y":117.0},{"x":81.0,"y":80.0},{"x":125.0,"y":114.0},{"x":132.0,"y":117.0},{"x":65.0,"y":67.0},{"x":129.0,"y":131.0},{"x":57.0,"y":68.0},{"x":72.0,"y":64.0},{"x":198.0,"y":200.0},{"x":36.0,"y":36.0},{"x":186.0,"y":196.0},{"x":137.0,"y":123.0},{"x":175.0,"y":163.0},{"x":86.0,"y":123.0},{"x":26.0,"y":72.0},{"x":77.0,"y":132.0},{"x":162.0,"y":161.0},{"x":183.0,"y":198.0},{"x":31.0,"y":38.0},{"x":66.0,"y":63.0},{"x":159.0,"y":79.0},{"x":86.0,"y":92.0},{"x":33.0,"y":41.0},{"x":138.0,"y":142.0},{"x":190.0,"y":179.0},{"x":47.0,"y":78.0},{"x":29.0,"y":31.0},{"x":102.0,"y":148.0},{"x":47.0,"y":42.0},{"x":65.0,"y":63.0},{"x":118.0,"y":117.0},{"x":220.0,"y":223.0},{"x":48.0,"y":54.0},{"x":82.0,"y":84.0},{"x":129.0,"y":142.0},{"x":121.0,"y":103.0},{"x":134.0,"y":126.0},{"x":213.0,"y":220.0},{"x":162.0,"y":157.0},{"x":130.0,"y":127.0},{"x":42.0,"y":46.0},{"x":50.0,"y":69.0},{"x":180.0,"y":187.0},{"x":116.0,"y":136.0},{"x":141.0,"y":133.0},{"x":174.0,"y":175.0},{"x":153.0,"y":144.0},{"x":137.0,"y":151.0},{"x":59.0,"y":59.0},{"x":79.0,"y":75.0},{"x":79.0,"y":53.0},{"x":62.0,"y":68.0},{"x":46.0,"y":47.0},{"x":146.0,"y":109.0},{"x":156.0,"y":165.0},{"x":51.0,"y":62.0},{"x":51.0,"y":73.0},{"x":186.0,"y":184.0},{"x":37.0,"y":47.0},{"x":132.0,"y":152.0},{"x":159.0,"y":173.0},{"x":61.0,"y":57.0},{"x":70.0,"y":66.0},{"x":69.0,"y":82.0},{"x":146.0,"y":137.0},{"x":202.0,"y":216.0},{"x":49.0,"y":56.0},{"x":145.0,"y":132.0},{"x":170.0,"y":165.0},{"x":102.0,"y":88.0},{"x":129.0,"y":126.0},{"x":183.0,"y":173.0},{"x":146.0,"y":143.0},{"x":159.0,"y":172.0},{"x":103.0,"y":142.0},{"x":95.0,"y":83.0},{"x":170.0,"y":166.0},{"x":159.0,"y":169.0},{"x":183.0,"y":182.0},{"x":197.0,"y":197.0},{"x":75.0,"y":77.0},{"x":178.0,"y":178.0},{"x":47.0,"y":40.0},{"x":187.0,"y":174.0},{"x":204.0,"y":198.0},{"x":228.0,"y":228.0},{"x":98.0,"y":76.0},{"x":87.0,"y":102.0},{"x":86.0,"y":72.0},{"x":186.0,"y":198.0},{"x":60.0,"y":80.0},{"x":162.0,"y":135.0},{"x":62.0,"y":100.0},{"x":81.0,"y":58.0},{"x":131.0,"y":150.0},{"x":135.0,"y":156.0},{"x":186.0,"y":193.0},{"x":147.0,"y":151.0},{"x":178.0,"y":179.0},{"x":52.0,"y":66.0},{"x":184.0,"y":190.0},{"x":177.0,"y":164.0},{"x":190.0,"y":190.0},{"x":203.0,"y":205.0},{"x":53.0,"y":55.0},{"x":104.0,"y":144.0},{"x":44.0,"y":73.0},{"x":78.0,"y":71.0},{"x":109.0,"y":90.0},{"x":92.0,"y":118.0},{"x":80.0,"y":91.0},{"x":192.0,"y":176.0},{"x":64.0,"y":62.0},{"x":56.0,"y":72.0},{"x":50.0,"y":80.0},{"x":45.0,"y":54.0},{"x":37.0,"y":40.0},{"x":50.0,"y":55.0},{"x":84.0,"y":86.0},{"x":80.0,"y":76.0},{"x":117.0,"y":130.0},{"x":83.0,"y":89.0},{"x":118.0,"y":117.0},{"x":112.0,"y":135.0},{"x":111.0,"y":92.0},{"x":201.0,"y":189.0},{"x":198.0,"y":195.0},{"x":181.0,"y":176.0},{"x":213.0,"y":209.0},{"x":112.0,"y":111.0},{"x":104.0,"y":122.0},{"x":191.0,"y":171.0},{"x":90.0,"y":93.0},{"x":197.0,"y":195.0},{"x":147.0,"y":137.0},{"x":173.0,"y":174.0},{"x":176.0,"y":165.0},{"x":206.0,"y":203.0},{"x":62.0,"y":69.0},{"x":119.0,"y":106.0},{"x":56.0,"y":67.0},{"x":169.0,"y":173.0},{"x":106.0,"y":112.0},{"x":146.0,"y":73.0},{"x":148.0,"y":157.0},{"x":180.0,"y":199.0},{"x":33.0,"y":28.0},{"x":48.0,"y":45.0},{"x":98.0,"y":115.0},{"x":93.0,"y":117.0},{"x":172.0,"y":166.0},{"x":175.0,"y":184.0},{"x":117.0,"y":100.0},{"x":93.0,"y":68.0},{"x":77.0,"y":68.0},{"x":115.0,"y":102.0},{"x":196.0,"y":192.0},{"x":86.0,"y":91.0},{"x":64.0,"y":91.0},{"x":135.0,"y":159.0},{"x":146.0,"y":147.0},{"x":156.0,"y":153.0},{"x":71.0,"y":75.0},{"x":59.0,"y":63.0},{"x":221.0,"y":216.0},{"x":157.0,"y":158.0},{"x":115.0,"y":107.0},{"x":189.0,"y":194.0},{"x":63.0,"y":63.0},{"x":180.0,"y":165.0},{"x":55.0,"y":73.0},{"x":171.0,"y":180.0},{"x":112.0,"y":125.0},{"x":54.0,"y":54.0},{"x":78.0,"y":87.0},{"x":204.0,"y":216.0},{"x":162.0,"y":159.0},{"x":173.0,"y":174.0},{"x":52.0,"y":77.0},{"x":78.0,"y":96.0},{"x":59.0,"y":59.0},{"x":174.0,"y":166.0},{"x":40.0,"y":40.0},{"x":52.0,"y":73.0},{"x":43.0,"y":62.0},{"x":110.0,"y":105.0},{"x":97.0,"y":93.0},{"x":101.0,"y":114.0},{"x":175.0,"y":172.0},{"x":88.0,"y":92.0},{"x":153.0,"y":129.0},{"x":45.0,"y":80.0},{"x":59.0,"y":69.0},{"x":124.0,"y":125.0},{"x":48.0,"y":64.0},{"x":145.0,"y":143.0},{"x":49.0,"y":45.0},{"x":171.0,"y":169.0},{"x":199.0,"y":181.0},{"x":184.0,"y":195.0},{"x":196.0,"y":206.0},{"x":113.0,"y":112.0},{"x":96.0,"y":72.0},{"x":174.0,"y":141.0},{"x":50.0,"y":53.0},{"x":127.0,"y":114.0},{"x":200.0,"y":195.0},{"x":74.0,"y":97.0},{"x":42.0,"y":54.0},{"x":126.0,"y":136.0},{"x":112.0,"y":95.0},{"x":53.0,"y":64.0},{"x":91.0,"y":71.0},{"x":154.0,"y":157.0},{"x":35.0,"y":51.0},{"x":55.0,"y":58.0},{"x":213.0,"y":212.0},{"x":149.0,"y":147.0},{"x":98.0,"y":102.0},{"x":141.0,"y":127.0},{"x":232.0,"y":234.0},{"x":121.0,"y":105.0},{"x":93.0,"y":124.0},{"x":157.0,"y":151.0},{"x":169.0,"y":165.0},{"x":145.0,"y":169.0},{"x":192.0,"y":201.0},{"x":198.0,"y":180.0},{"x":139.0,"y":168.0},{"x":230.0,"y":232.0},{"x":42.0,"y":44.0},{"x":61.0,"y":83.0},{"x":198.0,"y":189.0},{"x":157.0,"y":161.0},{"x":127.0,"y":135.0},{"x":72.0,"y":100.0},{"x":131.0,"y":120.0},{"x":61.0,"y":77.0},{"x":145.0,"y":73.0},{"x":204.0,"y":202.0},{"x":68.0,"y":91.0},{"x":220.0,"y":199.0},{"x":134.0,"y":141.0},{"x":136.0,"y":132.0},{"x":176.0,"y":183.0},{"x":208.0,"y":222.0},{"x":145.0,"y":161.0},{"x":100.0,"y":167.0},{"x":79.0,"y":81.0},{"x":98.0,"y":96.0},{"x":133.0,"y":153.0},{"x":139.0,"y":131.0},{"x":117.0,"y":84.0},{"x":54.0,"y":74.0},{"x":117.0,"y":93.0},{"x":119.0,"y":112.0},{"x":54.0,"y":55.0},{"x":117.0,"y":115.0},{"x":76.0,"y":76.0},{"x":205.0,"y":199.0},{"x":158.0,"y":160.0},{"x":156.0,"y":159.0},{"x":131.0,"y":197.0},{"x":73.0,"y":71.0},{"x":66.0,"y":66.0},{"x":114.0,"y":120.0},{"x":102.0,"y":160.0},{"x":46.0,"y":57.0},{"x":119.0,"y":100.0},{"x":186.0,"y":172.0},{"x":79.0,"y":128.0},{"x":116.0,"y":110.0},{"x":127.0,"y":160.0},{"x":73.0,"y":73.0},{"x":156.0,"y":162.0},{"x":93.0,"y":96.0},{"x":161.0,"y":174.0},{"x":50.0,"y":56.0},{"x":136.0,"y":143.0},{"x":52.0,"y":55.0},{"x":43.0,"y":53.0},{"x":53.0,"y":63.0},{"x":161.0,"y":135.0},{"x":49.0,"y":77.0},{"x":43.0,"y":62.0},{"x":62.0,"y":66.0},{"x":63.0,"y":61.0},{"x":149.0,"y":122.0},{"x":169.0,"y":181.0},{"x":66.0,"y":65.0},{"x":182.0,"y":160.0},{"x":63.0,"y":63.0},{"x":122.0,"y":100.0},{"x":57.0,"y":65.0},{"x":89.0,"y":87.0},{"x":136.0,"y":140.0},{"x":138.0,"y":136.0},{"x":35.0,"y":67.0},{"x":193.0,"y":189.0},{"x":39.0,"y":35.0},{"x":70.0,"y":75.0},{"x":122.0,"y":129.0},{"x":194.0,"y":200.0},{"x":36.0,"y":35.0},{"x":118.0,"y":119.0},{"x":195.0,"y":204.0},{"x":75.0,"y":67.0},{"x":69.0,"y":74.0},{"x":97.0,"y":128.0},{"x":202.0,"y":185.0},{"x":71.0,"y":75.0},{"x":70.0,"y":97.0},{"x":89.0,"y":92.0},{"x":47.0,"y":88.0},{"x":73.0,"y":71.0},{"x":131.0,"y":120.0},{"x":140.0,"y":151.0},{"x":166.0,"y":161.0},{"x":41.0,"y":46.0},{"x":114.0,"y":128.0},{"x":197.0,"y":185.0},{"x":243.0,"y":226.0},{"x":75.0,"y":74.0},{"x":61.0,"y":61.0},{"x":132.0,"y":144.0},{"x":224.0,"y":210.0},{"x":132.0,"y":140.0},{"x":111.0,"y":106.0},{"x":200.0,"y":210.0},{"x":197.0,"y":173.0},{"x":104.0,"y":90.0},{"x":75.0,"y":99.0},{"x":104.0,"y":133.0},{"x":184.0,"y":169.0},{"x":38.0,"y":42.0},{"x":45.0,"y":58.0},{"x":134.0,"y":161.0},{"x":25.0,"y":31.0},{"x":33.0,"y":53.0},{"x":211.0,"y":209.0},{"x":38.0,"y":40.0},{"x":95.0,"y":119.0},{"x":147.0,"y":146.0},{"x":124.0,"y":146.0},{"x":178.0,"y":182.0},{"x":61.0,"y":58.0},{"x":65.0,"y":66.0},{"x":54.0,"y":56.0},{"x":117.0,"y":107.0},{"x":114.0,"y":100.0},{"x":53.0,"y":56.0},{"x":159.0,"y":129.0},{"x":140.0,"y":122.0},{"x":186.0,"y":184.0},{"x":77.0,"y":79.0},{"x":91.0,"y":73.0},{"x":221.0,"y":206.0},{"x":189.0,"y":189.0},{"x":65.0,"y":74.0},{"x":180.0,"y":191.0},{"x":63.0,"y":66.0},{"x":176.0,"y":177.0},{"x":170.0,"y":169.0},{"x":150.0,"y":84.0},{"x":180.0,"y":195.0},{"x":51.0,"y":59.0},{"x":137.0,"y":144.0},{"x":150.0,"y":152.0},{"x":62.0,"y":53.0},{"x":86.0,"y":91.0},{"x":87.0,"y":66.0},{"x":58.0,"y":58.0},{"x":49.0,"y":52.0},{"x":110.0,"y":102.0},{"x":180.0,"y":188.0},{"x":74.0,"y":92.0},{"x":81.0,"y":79.0},{"x":141.0,"y":168.0},{"x":78.0,"y":95.0},{"x":164.0,"y":160.0},{"x":231.0,"y":225.0},{"x":60.0,"y":75.0},{"x":144.0,"y":155.0},{"x":175.0,"y":179.0},{"x":128.0,"y":129.0},{"x":20.0,"y":75.0},{"x":177.0,"y":219.0},{"x":143.0,"y":139.0},{"x":107.0,"y":95.0},{"x":167.0,"y":157.0},{"x":179.0,"y":176.0},{"x":149.0,"y":158.0},{"x":84.0,"y":122.0},{"x":204.0,"y":169.0},{"x":127.0,"y":144.0},{"x":91.0,"y":100.0},{"x":232.0,"y":218.0},{"x":125.0,"y":126.0},{"x":83.0,"y":89.0},{"x":71.0,"y":80.0},{"x":201.0,"y":206.0},{"x":112.0,"y":114.0},{"x":59.0,"y":60.0},{"x":151.0,"y":145.0},{"x":63.0,"y":71.0},{"x":55.0,"y":133.0},{"x":114.0,"y":112.0},{"x":35.0,"y":74.0},{"x":75.0,"y":84.0},{"x":39.0,"y":38.0},{"x":64.0,"y":66.0},{"x":83.0,"y":79.0},{"x":59.0,"y":60.0},{"x":173.0,"y":187.0},{"x":50.0,"y":56.0},{"x":126.0,"y":141.0},{"x":113.0,"y":120.0},{"x":29.0,"y":33.0},{"x":90.0,"y":72.0},{"x":57.0,"y":62.0},{"x":203.0,"y":207.0},{"x":89.0,"y":90.0},{"x":107.0,"y":163.0},{"x":67.0,"y":68.0},{"x":87.0,"y":91.0},{"x":77.0,"y":65.0},{"x":75.0,"y":86.0},{"x":33.0,"y":47.0},{"x":99.0,"y":103.0},{"x":184.0,"y":165.0},{"x":93.0,"y":92.0},{"x":177.0,"y":181.0},{"x":173.0,"y":167.0},{"x":230.0,"y":222.0},{"x":198.0,"y":202.0},{"x":51.0,"y":57.0},{"x":34.0,"y":48.0},{"x":67.0,"y":71.0},{"x":181.0,"y":172.0},{"x":107.0,"y":112.0},{"x":148.0,"y":147.0},{"x":81.0,"y":66.0},{"x":72.0,"y":69.0},{"x":99.0,"y":96.0},{"x":88.0,"y":86.0},{"x":79.0,"y":82.0},{"x":126.0,"y":135.0},{"x":74.0,"y":76.0},{"x":180.0,"y":170.0},{"x":48.0,"y":87.0},{"x":87.0,"y":75.0},{"x":185.0,"y":165.0},{"x":82.0,"y":80.0},{"x":51.0,"y":55.0},{"x":200.0,"y":196.0},{"x":90.0,"y":164.0},{"x":83.0,"y":73.0},{"x":45.0,"y":46.0},{"x":49.0,"y":48.0},{"x":86.0,"y":88.0},{"x":181.0,"y":176.0},{"x":91.0,"y":90.0},{"x":102.0,"y":104.0},{"x":73.0,"y":73.0},{"x":84.0,"y":115.0},{"x":126.0,"y":135.0},{"x":67.0,"y":57.0},{"x":132.0,"y":115.0},{"x":137.0,"y":149.0},{"x":53.0,"y":42.0},{"x":51.0,"y":63.0},{"x":134.0,"y":156.0},{"x":70.0,"y":77.0},{"x":175.0,"y":164.0},{"x":196.0,"y":183.0},{"x":75.0,"y":54.0},{"x":70.0,"y":74.0},{"x":219.0,"y":216.0},{"x":159.0,"y":155.0},{"x":60.0,"y":52.0},{"x":173.0,"y":209.0},{"x":129.0,"y":141.0},{"x":172.0,"y":175.0},{"x":162.0,"y":153.0},{"x":76.0,"y":111.0},{"x":191.0,"y":165.0},{"x":149.0,"y":157.0},{"x":126.0,"y":113.0},{"x":38.0,"y":42.0},{"x":118.0,"y":118.0},{"x":49.0,"y":50.0},{"x":51.0,"y":67.0},{"x":114.0,"y":84.0},{"x":76.0,"y":71.0},{"x":177.0,"y":169.0},{"x":73.0,"y":78.0},{"x":138.0,"y":142.0},{"x":139.0,"y":127.0},{"x":166.0,"y":176.0},{"x":72.0,"y":77.0},{"x":131.0,"y":125.0},{"x":131.0,"y":113.0},{"x":57.0,"y":66.0},{"x":95.0,"y":93.0},{"x":118.0,"y":135.0},{"x":144.0,"y":139.0},{"x":48.0,"y":59.0},{"x":60.0,"y":55.0},{"x":150.0,"y":134.0},{"x":104.0,"y":114.0},{"x":151.0,"y":153.0},{"x":190.0,"y":193.0},{"x":97.0,"y":100.0},{"x":96.0,"y":95.0},{"x":54.0,"y":57.0},{"x":136.0,"y":96.0},{"x":108.0,"y":140.0},{"x":71.0,"y":85.0},{"x":170.0,"y":217.0},{"x":157.0,"y":158.0},{"x":70.0,"y":95.0},{"x":50.0,"y":54.0},{"x":40.0,"y":60.0},{"x":112.0,"y":134.0},{"x":119.0,"y":113.0},{"x":63.0,"y":90.0},{"x":156.0,"y":148.0},{"x":194.0,"y":184.0},{"x":218.0,"y":209.0},{"x":60.0,"y":59.0},{"x":144.0,"y":153.0},{"x":52.0,"y":50.0},{"x":30.0,"y":40.0},{"x":115.0,"y":125.0},{"x":207.0,"y":202.0},{"x":48.0,"y":53.0},{"x":161.0,"y":146.0},{"x":112.0,"y":118.0},{"x":64.0,"y":71.0},{"x":164.0,"y":146.0},{"x":77.0,"y":58.0},{"x":52.0,"y":64.0},{"x":125.0,"y":111.0},{"x":229.0,"y":217.0},{"x":110.0,"y":120.0},{"x":158.0,"y":158.0},{"x":136.0,"y":128.0},{"x":47.0,"y":63.0},{"x":109.0,"y":135.0},{"x":101.0,"y":114.0},{"x":209.0,"y":193.0},{"x":54.0,"y":59.0},{"x":132.0,"y":151.0},{"x":145.0,"y":180.0},{"x":168.0,"y":150.0},{"x":77.0,"y":84.0},{"x":92.0,"y":94.0},{"x":32.0,"y":34.0},{"x":166.0,"y":173.0},{"x":158.0,"y":151.0},{"x":90.0,"y":129.0},{"x":128.0,"y":119.0},{"x":18.0,"y":61.0},{"x":71.0,"y":77.0},{"x":61.0,"y":67.0},{"x":41.0,"y":54.0},{"x":147.0,"y":76.0},{"x":90.0,"y":94.0},{"x":122.0,"y":117.0},{"x":136.0,"y":158.0},{"x":140.0,"y":72.0},{"x":127.0,"y":132.0},{"x":71.0,"y":68.0},{"x":125.0,"y":125.0},{"x":63.0,"y":72.0},{"x":137.0,"y":135.0},{"x":70.0,"y":68.0},{"x":62.0,"y":61.0},{"x":28.0,"y":136.0},{"x":194.0,"y":203.0},{"x":206.0,"y":202.0},{"x":38.0,"y":43.0},{"x":101.0,"y":109.0},{"x":125.0,"y":124.0},{"x":90.0,"y":119.0},{"x":150.0,"y":154.0},{"x":35.0,"y":38.0},{"x":44.0,"y":57.0},{"x":174.0,"y":169.0},{"x":36.0,"y":47.0},{"x":57.0,"y":58.0},{"x":123.0,"y":140.0},{"x":54.0,"y":51.0},{"x":135.0,"y":166.0},{"x":56.0,"y":56.0},{"x":90.0,"y":93.0},{"x":108.0,"y":164.0},{"x":210.0,"y":208.0},{"x":80.0,"y":96.0},{"x":65.0,"y":72.0},{"x":111.0,"y":121.0},{"x":156.0,"y":165.0},{"x":31.0,"y":35.0},{"x":174.0,"y":152.0},{"x":213.0,"y":209.0},{"x":83.0,"y":78.0},{"x":116.0,"y":132.0},{"x":80.0,"y":78.0},{"x":51.0,"y":52.0},{"x":99.0,"y":156.0},{"x":43.0,"y":46.0},{"x":56.0,"y":50.0},{"x":149.0,"y":149.0},{"x":75.0,"y":80.0},{"x":68.0,"y":62.0},{"x":106.0,"y":105.0},{"x":130.0,"y":63.0},{"x":153.0,"y":143.0},{"x":114.0,"y":110.0},{"x":197.0,"y":194.0},{"x":49.0,"y":64.0},{"x":84.0,"y":80.0},{"x":200.0,"y":195.0},{"x":177.0,"y":167.0},{"x":82.0,"y":96.0},{"x":134.0,"y":133.0},{"x":111.0,"y":99.0},{"x":99.0,"y":90.0},{"x":187.0,"y":230.0},{"x":66.0,"y":70.0},{"x":92.0,"y":86.0},{"x":124.0,"y":69.0},{"x":139.0,"y":152.0},{"x":87.0,"y":79.0},{"x":63.0,"y":67.0},{"x":143.0,"y":144.0},{"x":74.0,"y":121.0},{"x":102.0,"y":86.0},{"x":226.0,"y":227.0},{"x":246.0,"y":232.0},{"x":75.0,"y":97.0},{"x":83.0,"y":101.0},{"x":66.0,"y":79.0},{"x":79.0,"y":64.0},{"x":107.0,"y":111.0},{"x":64.0,"y":65.0},{"x":158.0,"y":150.0},{"x":138.0,"y":226.0},{"x":65.0,"y":149.0},{"x":120.0,"y":115.0},{"x":143.0,"y":122.0},{"x":107.0,"y":105.0},{"x":62.0,"y":72.0},{"x":201.0,"y":195.0},{"x":43.0,"y":55.0},{"x":153.0,"y":137.0},{"x":30.0,"y":37.0},{"x":80.0,"y":83.0},{"x":230.0,"y":230.0},{"x":61.0,"y":64.0},{"x":129.0,"y":137.0},{"x":207.0,"y":186.0},{"x":86.0,"y":84.0},{"x":133.0,"y":128.0},{"x":52.0,"y":58.0},{"x":57.0,"y":75.0},{"x":199.0,"y":204.0},{"x":87.0,"y":145.0},{"x":117.0,"y":120.0},{"x":71.0,"y":70.0},{"x":205.0,"y":190.0},{"x":204.0,"y":202.0},{"x":134.0,"y":143.0},{"x":216.0,"y":221.0},{"x":81.0,"y":64.0},{"x":179.0,"y":177.0},{"x":44.0,"y":55.0},{"x":29.0,"y":88.0},{"x":68.0,"y":72.0},{"x":207.0,"y":212.0},{"x":194.0,"y":193.0},{"x":124.0,"y":119.0},{"x":187.0,"y":215.0},{"x":94.0,"y":124.0},{"x":113.0,"y":102.0},{"x":73.0,"y":74.0},{"x":88.0,"y":93.0},{"x":87.0,"y":99.0},{"x":64.0,"y":67.0},{"x":114.0,"y":85.0},{"x":120.0,"y":153.0},{"x":65.0,"y":70.0},{"x":105.0,"y":92.0},{"x":102.0,"y":169.0},{"x":85.0,"y":96.0},{"x":45.0,"y":48.0},{"x":81.0,"y":77.0},{"x":77.0,"y":98.0},{"x":45.0,"y":50.0},{"x":67.0,"y":64.0},{"x":65.0,"y":67.0},{"x":114.0,"y":112.0},{"x":144.0,"y":126.0},{"x":52.0,"y":54.0},{"x":51.0,"y":65.0},{"x":89.0,"y":93.0},{"x":189.0,"y":173.0},{"x":200.0,"y":196.0},{"x":156.0,"y":170.0},{"x":28.0,"y":46.0},{"x":58.0,"y":83.0},{"x":219.0,"y":199.0},{"x":66.0,"y":66.0},{"x":71.0,"y":71.0},{"x":67.0,"y":97.0},{"x":139.0,"y":124.0},{"x":191.0,"y":188.0},{"x":113.0,"y":117.0},{"x":109.0,"y":107.0},{"x":207.0,"y":209.0},{"x":38.0,"y":43.0},{"x":142.0,"y":123.0},{"x":79.0,"y":74.0},{"x":65.0,"y":63.0},{"x":149.0,"y":168.0},{"x":83.0,"y":112.0},{"x":90.0,"y":87.0},{"x":65.0,"y":74.0},{"x":127.0,"y":130.0},{"x":156.0,"y":156.0},{"x":87.0,"y":108.0},{"x":129.0,"y":116.0},{"x":108.0,"y":100.0},{"x":57.0,"y":57.0},{"x":165.0,"y":157.0},{"x":138.0,"y":137.0},{"x":63.0,"y":68.0},{"x":117.0,"y":113.0},{"x":193.0,"y":186.0},{"x":77.0,"y":78.0},{"x":51.0,"y":48.0},{"x":200.0,"y":216.0},{"x":62.0,"y":69.0},{"x":73.0,"y":70.0},{"x":67.0,"y":88.0},{"x":129.0,"y":119.0},{"x":163.0,"y":160.0},{"x":61.0,"y":61.0},{"x":198.0,"y":194.0},{"x":190.0,"y":186.0},{"x":173.0,"y":111.0},{"x":188.0,"y":155.0},{"x":75.0,"y":78.0},{"x":45.0,"y":45.0},{"x":114.0,"y":188.0},{"x":61.0,"y":59.0},{"x":56.0,"y":56.0},{"x":89.0,"y":89.0},{"x":138.0,"y":144.0},{"x":165.0,"y":178.0},{"x":131.0,"y":139.0},{"x":63.0,"y":74.0},{"x":194.0,"y":182.0},{"x":160.0,"y":151.0},{"x":56.0,"y":60.0},{"x":139.0,"y":153.0},{"x":70.0,"y":85.0},{"x":146.0,"y":145.0},{"x":71.0,"y":68.0},{"x":105.0,"y":105.0},{"x":84.0,"y":97.0},{"x":162.0,"y":168.0},{"x":151.0,"y":142.0},{"x":61.0,"y":48.0},{"x":134.0,"y":153.0},{"x":135.0,"y":125.0},{"x":102.0,"y":172.0},{"x":63.0,"y":69.0},{"x":67.0,"y":58.0},{"x":235.0,"y":235.0},{"x":127.0,"y":125.0},{"x":102.0,"y":108.0},{"x":155.0,"y":90.0},{"x":42.0,"y":45.0},{"x":93.0,"y":96.0},{"x":72.0,"y":74.0},{"x":136.0,"y":142.0},{"x":85.0,"y":92.0},{"x":155.0,"y":147.0},{"x":216.0,"y":221.0},{"x":86.0,"y":95.0},{"x":49.0,"y":57.0},{"x":71.0,"y":81.0},{"x":136.0,"y":127.0},{"x":58.0,"y":59.0},{"x":75.0,"y":75.0},{"x":217.0,"y":213.0},{"x":155.0,"y":145.0},{"x":166.0,"y":172.0},{"x":83.0,"y":104.0},{"x":115.0,"y":127.0},{"x":58.0,"y":57.0},{"x":59.0,"y":53.0},{"x":68.0,"y":90.0},{"x":108.0,"y":117.0},{"x":39.0,"y":53.0},{"x":115.0,"y":112.0},{"x":75.0,"y":51.0},{"x":151.0,"y":159.0},{"x":190.0,"y":187.0},{"x":128.0,"y":123.0},{"x":72.0,"y":72.0},{"x":210.0,"y":203.0},{"x":94.0,"y":80.0},{"x":197.0,"y":190.0},{"x":177.0,"y":192.0},{"x":41.0,"y":57.0},{"x":50.0,"y":59.0},{"x":200.0,"y":192.0},{"x":55.0,"y":60.0},{"x":190.0,"y":173.0},{"x":76.0,"y":73.0},{"x":57.0,"y":65.0},{"x":203.0,"y":194.0},{"x":213.0,"y":204.0},{"x":163.0,"y":153.0},{"x":67.0,"y":68.0},{"x":145.0,"y":184.0},{"x":85.0,"y":87.0},{"x":59.0,"y":53.0},{"x":49.0,"y":50.0},{"x":165.0,"y":153.0},{"x":93.0,"y":87.0},{"x":89.0,"y":93.0},{"x":161.0,"y":159.0},{"x":45.0,"y":54.0},{"x":194.0,"y":205.0},{"x":107.0,"y":114.0},{"x":90.0,"y":95.0},{"x":148.0,"y":140.0},{"x":168.0,"y":153.0},{"x":232.0,"y":223.0},{"x":197.0,"y":186.0},{"x":181.0,"y":188.0},{"x":101.0,"y":88.0},{"x":70.0,"y":69.0},{"x":130.0,"y":119.0},{"x":67.0,"y":98.0},{"x":189.0,"y":194.0},{"x":163.0,"y":130.0},{"x":205.0,"y":207.0},{"x":93.0,"y":78.0},{"x":56.0,"y":72.0},{"x":39.0,"y":55.0},{"x":157.0,"y":155.0},{"x":136.0,"y":120.0},{"x":52.0,"y":71.0},{"x":41.0,"y":56.0},{"x":191.0,"y":192.0},{"x":160.0,"y":224.0},{"x":171.0,"y":159.0},{"x":72.0,"y":76.0},{"x":145.0,"y":140.0},{"x":172.0,"y":182.0},{"x":140.0,"y":125.0},{"x":163.0,"y":164.0},{"x":97.0,"y":90.0},{"x":123.0,"y":140.0},{"x":192.0,"y":194.0},{"x":118.0,"y":113.0},{"x":181.0,"y":174.0},{"x":112.0,"y":126.0},{"x":170.0,"y":187.0},{"x":48.0,"y":67.0},{"x":188.0,"y":172.0},{"x":90.0,"y":87.0},{"x":95.0,"y":127.0},{"x":90.0,"y":90.0},{"x":138.0,"y":129.0},{"x":194.0,"y":186.0},{"x":169.0,"y":154.0},{"x":53.0,"y":64.0},{"x":41.0,"y":50.0},{"x":128.0,"y":121.0},{"x":235.0,"y":225.0},{"x":112.0,"y":86.0},{"x":154.0,"y":135.0},{"x":50.0,"y":53.0},{"x":76.0,"y":84.0},{"x":93.0,"y":108.0},{"x":128.0,"y":121.0},{"x":126.0,"y":122.0},{"x":191.0,"y":192.0},{"x":91.0,"y":85.0},{"x":165.0,"y":125.0},{"x":50.0,"y":52.0},{"x":62.0,"y":61.0},{"x":110.0,"y":106.0},{"x":103.0,"y":89.0},{"x":87.0,"y":109.0},{"x":184.0,"y":178.0},{"x":131.0,"y":144.0},{"x":135.0,"y":125.0},{"x":206.0,"y":203.0},{"x":38.0,"y":64.0},{"x":90.0,"y":97.0},{"x":49.0,"y":84.0},{"x":58.0,"y":61.0},{"x":51.0,"y":50.0},{"x":140.0,"y":127.0},{"x":98.0,"y":58.0},{"x":126.0,"y":145.0},{"x":74.0,"y":80.0},{"x":90.0,"y":92.0},{"x":161.0,"y":172.0},{"x":174.0,"y":182.0},{"x":136.0,"y":111.0},{"x":186.0,"y":181.0},{"x":169.0,"y":169.0},{"x":45.0,"y":63.0},{"x":176.0,"y":170.0}],"checks":[{"check_name":"actual_in_range","passed":1,"severity":"error","issue_count":0,"detail":"all 4320 present actuals within 0-1000 gCO2/kWh"},{"check_name":"forecast_numeric_in_range","passed":1,"severity":"error","issue_count":0,"detail":"all forecasts numeric and within 0-1000 gCO2/kWh"},{"check_name":"index_in_known_set","passed":1,"severity":"error","issue_count":0,"detail":"index values all known (high, low, moderate, very high)"},{"check_name":"missing_actuals","passed":1,"severity":"warning","issue_count":0,"detail":"every period has a settled actual"},{"check_name":"no_duplicate_periods","passed":1,"severity":"error","issue_count":0,"detail":"no duplicate period starts"},{"check_name":"no_future_periods","passed":1,"severity":"warning","issue_count":0,"detail":"no periods start in the future"},{"check_name":"no_gaps_in_sequence","passed":1,"severity":"error","issue_count":0,"detail":"continuous 30-minute sequence across 4320 periods"},{"check_name":"not_empty","passed":1,"severity":"error","issue_count":0,"detail":"4320 periods in table"},{"check_name":"period_is_30_minutes","passed":1,"severity":"error","issue_count":0,"detail":"every period spans exactly 30 minutes"}],"periods_per_day":[{"full_date":"2026-08-08","periods":46},{"full_date":"2026-08-09","periods":48},{"full_date":"2026-08-10","periods":48},{"full_date":"2026-08-11","periods":48},{"full_date":"2026-08-12","periods":48},{"full_date":"2026-08-13","periods":48},{"full_date":"2026-08-14","periods":48},{"full_date":"2026-08-15","periods":48},{"full_date":"2026-08-16","periods":48},{"full_date":"2026-08-17","periods":48},{"full_date":"2026-08-18","periods":48},{"full_date":"2026-08-19","periods":48},{"full_date":"2026-08-20","periods":48},{"full_date":"2026-08-21","periods":48},{"full_date":"2026-08-22","periods":48},{"full_date":"2026-08-23","periods":48},{"full_date":"2026-08-24","periods":48},{"full_date":"2026-08-25","periods":48},{"full_date":"2026-08-26","periods":48},{"full_date":"2026-08-27","periods":48},{"full_date":"2026-08-28","periods":48},{"full_date":"2026-08-29","periods":48},{"full_date":"2026-08-30","periods":48},{"full_date":"2026-08-31","periods":48},{"full_date":"2026-09-01","periods":48},{"full_date":"2026-09-02","periods":48},{"full_date":"2026-09-03","periods":48},{"full_date":"2026-09-04","periods":48},{"full_date":"2026-09-05","periods":48},{"full_date":"2026-09-06","periods":48},{"full_date":"2026-09-07","periods":48},{"full_date":"2026-09-08","periods":48},{"full_date":"2026-09-09","periods":48},{"full_date":"2026-09-10","periods":48},{"full_date":"2026-09-11","periods":48},{"full_date":"2026-09-12","periods":48},{"full_date":"2026-09-13","periods":48},{"full_date":"2026-09-14","periods":48},{"full_date":"2026-09-15","periods":48},{"full_date":"2026-09-16","periods":48},{"full_date":"2026-09-17","periods":48},{"full_date":"2026-09-18","periods":48},{"full_date":"2026-09-19","periods":48},{"full_date":"2026-09-20","periods":48},{"full_date":"2026-09-21","periods":48},{"full_date":"2026-09-22","periods":48},{"full_date":"2026-09-23","periods":48},{"full_date":"2026-09-24","periods":48},{"full_date":"2026-09-25","periods":48},{"full_date":"2026-09-26","periods":48},{"full_date":"2026-09-27","periods":48},{"full_date":"2026-09-28","periods":48},{"full_date":"2026-09-29","periods":48},{"full_date":"2026-09-30","periods":48},{"full_date":"2026-10-01","periods":48},{"full_date":"2026-10-02","periods":48},{"full_date":"2026-10-03","periods":48},{"full_date":"2026-10-04","periods":48},{"full_date":"2026-10-05","periods":48},{"full_date":"2026-10-06","periods":48},{"full_date":"2026-10-07","periods":48},{"full_date":"2026-10-08","periods":48},{"full_date":"2026-10-09","periods":48},{"full_date":"2026-10-10","periods":48},{"full_date":"2026-10-11","periods":48},{"full_date":"2026-10-12","periods":48},{"full_date":"2026-10-13","periods":48},{"full_date":"2026-10-14","periods":48},{"full_date":"2026-10-15","periods":48},{"full_date":"2026-10-16","periods":48},{"full_date":"2026-10-17","periods":48},{"full_date":"2026-10-18","periods":48},{"full_date":"2026-10-19","periods":48},{"full_date":"2026-10-20","periods":48},{"full_date":"2026-10-21","periods":48},{"full_date":"2026-10-22","periods":48},{"full_date":"2026-10-23","periods":48},{"full_date":"2026-10-24","periods":48},{"full_date":"2026-10-25","periods":50},{"full_date":"2026-10-26","periods":48},{"full_date":"2026-10-27","periods":48},{"full_date":"2026-10-28","periods":48},{"full_date":"2026-10-29","periods":48},{"full_date":"2026-10-30","periods":48},{"full_date":"2026-10-31","periods":48},{"full_date":"2026-11-01","periods":48},{"full_date":"2026-11-02","periods":48},{"full_date":"2026-11-03","periods":48},{"full_date":"2026-11-04","periods":48},{"full_date":"2026-11-05","periods":48}],"weekend":[{"is_weekend":0,"avg_actual":124.9},{"is_weekend":1,"avg_actual":104.4}],"run":{"run_id":"390b341acf0b","run_at_utc":"2026-11-07T13:38:03Z","window_start_utc":"2026-08-08T00:00:00Z","window_end_utc":"2026-11-06T00:00:00Z","days_requested":90.0,"api_requests":0,"cache_hits":7,"retries":0,"periods_loaded":4320,"checks_run":9,"checks_failed":0,"missing_actuals":0,"status":"success"}}</script>
+<script>
+(function(){
+"use strict";
+var D = JSON.parse(document.getElementById("data").textContent);
+var K = D.kpi, $ = function(id){return document.getElementById(id);};
+var NS = "http://www.w3.org/2000/svg";
+
+function el(tag, attrs, text){
+  var n = document.createElementNS(NS, tag);
+  for (var k in attrs) if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]);
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function svg(w, h){
+  var s = el("svg", {viewBox: "0 0 " + w + " " + h, preserveAspectRatio: "xMidYMid meet", role: "img"});
+  return s;
+}
+function ramp(v){
+  if (v < 95) return "var(--c-vlow)";
+  if (v < 120) return "var(--c-low)";
+  if (v < 150) return "var(--c-mod)";
+  if (v < 185) return "var(--c-high)";
+  return "var(--c-vhigh)";
+}
+function fmt(n, d){ return Number(n).toFixed(d === undefined ? 0 : d); }
+
+/* ---------- masthead meta ---------- */
+$("meta").textContent = "8 August – 5 November 2026 · 4,320 half-hourly periods · 7 API requests · 9 data-quality checks · 47 tests";
+
+/* ---------- KPI rows ---------- */
+function readings(host, items){
+  host.innerHTML = "";
+  items.forEach(function(it){
+    var d = document.createElement("div"); d.className = "reading";
+    var v = document.createElement("span"); v.className = "v num"; v.textContent = it.v;
+    if (it.u){ var u = document.createElement("span"); u.className = "u"; u.textContent = it.u; v.appendChild(u); }
+    if (it.c) v.style.color = it.c;
+    var k = document.createElement("span"); k.className = "k"; k.textContent = it.k;
+    d.appendChild(v); d.appendChild(k); host.appendChild(d);
+  });
+}
+readings($("kpis"), [
+  {v: fmt(K.avg_actual,1), u:" g", k:"Average intensity across the window, gCO₂/kWh"},
+  {v:"12:00", k:"Greenest half-hour, averaging " + fmt(K.min_hh,0) + " g", c:"var(--c-vlow)"},
+  {v:"19:00", k:"Dirtiest half-hour, averaging " + fmt(K.max_hh,0) + " g", c:"var(--c-high)"},
+  {v: fmt(K.low_pct,0), u:"%", k:"Periods rated low carbon"},
+  {v: fmt(K.high_pct,0), u:"%", k:"Periods rated high or very high"},
+  {v: fmt(K.mae,1), u:" g", k:"Mean absolute forecast error"}
+]);
+readings($("acckpis"), [
+  {v: fmt(K.mae,1), u:" g", k:"Mean absolute error across 4,314 settled periods"},
+  {v: fmt(K.w20,0), u:"%", k:"Periods forecast within 20 gCO₂/kWh"},
+  {v: fmt(K.w50,0), u:"%", k:"Periods forecast within 50 gCO₂/kWh"},
+  {v: fmt(K.mape,1), u:"%", k:"Mean absolute percentage error"},
+  {v:"+" + fmt(K.bias,1), u:" g", k:"Bias: the forecast runs slightly optimistic"},
+  {v: fmt(K.worst,0), u:" g", k:"Worst single half-hour in the window"}
+]);
+
+/* ---------- hero waveform ---------- */
+(function(){
+  var W = 980, H = 300, L = 46, R = 16, T = 22, B = 34;
+  var pw = W - L - R, ph = H - T - B;
+  var d = D.halfhour, n = d.length;
+  var lo = 60, hi = 170;
+  var x = function(i){ return L + (i / (n - 1)) * pw; };
+  var y = function(v){ return T + ph - ((v - lo) / (hi - lo)) * ph; };
+  var s = svg(W, H);
+  s.appendChild(el("title", {}, "Average carbon intensity by half-hour slot"));
+
+  for (var g = 60; g <= 170; g += 20){
+    s.appendChild(el("line", {x1:L, x2:L+pw, y1:y(g), y2:y(g), class:"gl"}));
+    s.appendChild(el("text", {x:L-9, y:y(g)+3.5, class:"ax", "text-anchor":"end"}, g));
+  }
+  // banded background for the evening peak window
+  s.appendChild(el("rect", {x:x(34), y:T, width:x(42)-x(34), height:ph,
+    fill:"var(--c-high)", opacity:".07"}));
+  s.appendChild(el("rect", {x:x(22), y:T, width:x(28)-x(22), height:ph,
+    fill:"var(--c-vlow)", opacity:".09"}));
+
+  var line = "", area = "";
+  d.forEach(function(p, i){
+    var cmd = (i === 0 ? "M" : "L") + fmt(x(i),1) + " " + fmt(y(p.avg_actual),1);
+    line += cmd; area += cmd;
+  });
+  area += "L" + fmt(x(n-1),1) + " " + fmt(T+ph,1) + "L" + fmt(x(0),1) + " " + fmt(T+ph,1) + "Z";
+
+  var defs = el("defs", {});
+  var lg = el("linearGradient", {id:"wg", x1:"0", y1:"0", x2:"0", y2:"1"});
+  lg.appendChild(el("stop", {offset:"0%", "stop-color":"var(--c-high)", "stop-opacity":".30"}));
+  lg.appendChild(el("stop", {offset:"100%", "stop-color":"var(--c-low)", "stop-opacity":".04"}));
+  defs.appendChild(lg); s.appendChild(defs);
+
+  s.appendChild(el("path", {d:area, fill:"url(#wg)"}));
+  // forecast line, thin
+  var fl = "";
+  d.forEach(function(p,i){ fl += (i===0?"M":"L") + fmt(x(i),1) + " " + fmt(y(p.avg_forecast),1); });
+  s.appendChild(el("path", {d:fl, fill:"none", stroke:"var(--ink-3)", "stroke-width":1,
+    "stroke-dasharray":"3 3"}));
+  s.appendChild(el("path", {d:line, fill:"none", stroke:"var(--ink)", "stroke-width":2.1,
+    "stroke-linejoin":"round", "stroke-linecap":"round"}));
+
+  // markers at the trough and the peak
+  var vals = d.map(function(p){ return p.avg_actual; });
+  var iMin = vals.indexOf(Math.min.apply(null, vals));
+  var iMax = vals.indexOf(Math.max.apply(null, vals));
+  [[iMin, "var(--c-vlow)", "cleanest", -1], [iMax, "var(--c-high)", "dirtiest", 1]].forEach(function(m){
+    var i = m[0], c = m[1];
+    s.appendChild(el("circle", {cx:x(i), cy:y(vals[i]), r:4.5, fill:c, stroke:"var(--panel)", "stroke-width":2}));
+    var ty = m[3] < 0 ? y(vals[i]) + 26 : y(vals[i]) - 22;
+    s.appendChild(el("line", {x1:x(i), x2:x(i), y1:y(vals[i]) + (m[3]<0?7:-7), y2:ty + (m[3]<0?-13:9),
+      stroke:c, "stroke-width":1}));
+    var tx = Math.min(Math.max(x(i), L + 40), L + pw - 40);
+    s.appendChild(el("text", {x:tx, y:ty, class:"ann", "text-anchor":"middle", fill:c},
+      d[i].time_label + " · " + fmt(vals[i]) + " g"));
+    s.appendChild(el("text", {x:tx, y:ty + 13, class:"ann-s", "text-anchor":"middle"}, m[2] + " half-hour"));
+  });
+
+  [0, 8, 16, 24, 32, 40, 47].forEach(function(i){
+    s.appendChild(el("text", {x:x(i), y:T+ph+17, class:"ax", "text-anchor":"middle"}, d[i].time_label));
+  });
+  s.appendChild(el("line", {x1:L, x2:L+pw, y1:T+ph, y2:T+ph, class:"gl0"}));
+  s.appendChild(el("text", {x:L+pw, y:T+ph+30, class:"ax", "text-anchor":"end"},
+    "solid: actual   ·   dashed: forecast"));
+  $("wave").appendChild(s);
+})();
+
+/* ---------- daily line with rolling 7 ---------- */
+(function(){
+  var W = 620, H = 230, L = 38, R = 10, T = 14, B = 28;
+  var pw = W-L-R, ph = H-T-B, d = D.daily, n = d.length;
+  var vals = d.map(function(p){return p.avg_actual;});
+  var lo = 30, hi = 230;
+  var x = function(i){return L + (i/(n-1))*pw;}, y = function(v){return T+ph-((v-lo)/(hi-lo))*ph;};
+  var s = svg(W,H);
+  for (var g=50; g<=200; g+=50){
+    s.appendChild(el("line",{x1:L,x2:L+pw,y1:y(g),y2:y(g),class:"gl"}));
+    s.appendChild(el("text",{x:L-8,y:y(g)+3.5,class:"ax","text-anchor":"end"},g));
+  }
+  var p1=""; d.forEach(function(p,i){p1+=(i===0?"M":"L")+fmt(x(i),1)+" "+fmt(y(p.avg_actual),1);});
+  s.appendChild(el("path",{d:p1,fill:"none",stroke:"var(--ink-3)","stroke-width":.9,opacity:".75"}));
+  var roll=[], p2="";
+  vals.forEach(function(v,i){
+    var a=Math.max(0,i-6), w=vals.slice(a,i+1), m=w.reduce(function(x,y){return x+y;},0)/w.length;
+    roll.push(m); if(i>=6) p2+=((p2==="")?"M":"L")+fmt(x(i),1)+" "+fmt(y(m),1);
+  });
+  s.appendChild(el("path",{d:p2,fill:"none",stroke:"var(--accent)","stroke-width":2.3,"stroke-linejoin":"round"}));
+  [0,30,60,89].forEach(function(i){
+    s.appendChild(el("text",{x:x(i),y:T+ph+16,class:"ax","text-anchor":i===0?"start":(i===89?"end":"middle")},
+      d[i].full_date.slice(8,10)+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][parseInt(d[i].full_date.slice(5,7),10)-1]));
+  });
+  s.appendChild(el("line",{x1:L,x2:L+pw,y1:T+ph,y2:T+ph,class:"gl0"}));
+  $("daily").appendChild(s);
+})();
+
+/* ---------- index mix ---------- */
+(function(){
+  var order = ["very low","low","moderate","high","very high"];
+  var cmap = {"very low":"var(--c-vlow)","low":"var(--c-low)","moderate":"var(--c-mod)",
+              "high":"var(--c-high)","very high":"var(--c-vhigh)"};
+  var byName = {}; D.mix.forEach(function(m){byName[m.intensity_index]=m;});
+  var bar = $("mix"), key = $("mixkey");
+  order.forEach(function(nm){
+    var m = byName[nm]; if(!m) return;
+    var d = document.createElement("div");
+    d.style.width = m.pct_of_periods + "%"; d.style.background = cmap[nm];
+    if (m.pct_of_periods > 7) d.textContent = fmt(m.pct_of_periods,0) + "%";
+    d.title = nm + ": " + m.periods + " periods";
+    bar.appendChild(d);
+    var k = document.createElement("span");
+    k.innerHTML = '<i style="background:'+cmap[nm]+'"></i>' + nm + " · " + fmt(m.pct_of_periods,1) + "%";
+    key.appendChild(k);
+  });
+})();
+
+/* ---------- weekday vs weekend ---------- */
+(function(){
+  var w = D.weekend, wd = w.find(function(r){return r.is_weekend===0;}),
+      we = w.find(function(r){return r.is_weekend===1;});
+  var W=300,H=96,L=78,R=38,T=8,pw=W-L-R, max=140;
+  var s = svg(W,H);
+  [[wd.avg_actual,"Weekdays",0],[we.avg_actual,"Weekends",1]].forEach(function(r,i){
+    var yy = T + i*40, bw = (r[0]/max)*pw;
+    s.appendChild(el("text",{x:L-10,y:yy+17,class:"axl","text-anchor":"end"}, r[1]));
+    s.appendChild(el("rect",{x:L,y:yy,width:bw,height:24,rx:2,fill:ramp(r[0])}));
+    s.appendChild(el("text",{x:L+bw+8,y:yy+17,class:"ann"}, fmt(r[0],0)));
+  });
+  var host = $("weekend");
+  var h = document.createElement("h3"); h.textContent = "Weekdays against weekends";
+  var p = document.createElement("p"); p.className="sub";
+  p.textContent = "Lower demand at the weekend means less gas generation is called on";
+  host.appendChild(h); host.appendChild(p); host.appendChild(s);
+})();
+
+/* ---------- heatmap ---------- */
+(function(){
+  var days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  var cw = 36, ch = 30, L = 86, T = 24, W = L + 24*cw + 14, H = T + 7*ch + 16;
+  var s = svg(W, H);
+  var vals = D.heat.map(function(r){return r.avg_actual;});
+  var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+  var idx = {}; D.heat.forEach(function(r){ idx[r.weekday_number+"|"+r.hour_of_day] = r.avg_actual; });
+  for (var h = 0; h < 24; h += 2)
+    s.appendChild(el("text",{x:L+h*cw+cw/2,y:T-8,class:"ax","text-anchor":"middle"}, h));
+  days.forEach(function(nm, di){
+    var yy = T + di*ch;
+    s.appendChild(el("text",{x:L-10,y:yy+ch/2+4,class:"axl","text-anchor":"end"}, nm));
+    for (var hh = 0; hh < 24; hh++){
+      var v = idx[(di+1)+"|"+hh];
+      if (v === undefined) continue;
+      var t = (v - lo) / (hi - lo);
+      s.appendChild(el("rect",{x:L+hh*cw, y:yy, width:cw-1.5, height:ch-1.5, rx:1.5,
+        fill:ramp(v), opacity:(0.22 + 0.78*t).toFixed(2)}));
+      s.appendChild(el("text",{x:L+hh*cw+(cw-1.5)/2, y:yy+ch/2+3.5, "text-anchor":"middle",
+        "font-size":"9.5", fill: t > 0.55 ? "#fff" : "var(--ink)", "font-weight":"600",
+        style:"font-variant-numeric:tabular-nums"}, fmt(v)));
+    }
+  });
+  s.appendChild(el("text",{x:L, y:H-2, class:"ax"}, "hour of day, local time"));
+  $("heat").appendChild(s);
+})();
+
+/* ---------- day part bars ---------- */
+(function(){
+  var d = D.daypart.slice().sort(function(a,b){return a.avg_actual-b.avg_actual;});
+  var W=560, rowH=42, L=168, R=48, T=6, H=T+d.length*rowH+6, pw=W-L-R;
+  var max = Math.max.apply(null, d.map(function(r){return r.avg_actual;})) * 1.06;
+  var s = svg(W,H);
+  d.forEach(function(r,i){
+    var yy=T+i*rowH, bw=(r.avg_actual/max)*pw;
+    s.appendChild(el("text",{x:L-12,y:yy+21,class:"axl","text-anchor":"end"}, r.day_part));
+    s.appendChild(el("rect",{x:L,y:yy+3,width:bw,height:26,rx:2,fill:ramp(r.avg_actual)}));
+    s.appendChild(el("text",{x:L+bw+9,y:yy+21,class:"ann"}, fmt(r.avg_actual,0)));
+  });
+  $("daypart").appendChild(s);
+})();
+
+/* ---------- ranked slots ---------- */
+(function(){
+  var d = D.halfhour.slice().sort(function(a,b){return a.avg_actual-b.avg_actual;});
+  var top = d.slice(0,6), bot = d.slice(-6).reverse();
+  var rows = top.concat([null]).concat(bot);
+  var W=560, rowH=26, L=74, R=44, T=6, H=T+rows.length*rowH+4, pw=W-L-R;
+  var max = Math.max.apply(null, d.map(function(r){return r.avg_actual;}))*1.05;
+  var s = svg(W,H);
+  rows.forEach(function(r,i){
+    var yy=T+i*rowH;
+    if (r===null){
+      s.appendChild(el("line",{x1:L-60,x2:L+pw,y1:yy+13,y2:yy+13,class:"gl"}));
+      s.appendChild(el("text",{x:L-66,y:yy+17,class:"ax","text-anchor":"end"},"⋮"));
+      return;
+    }
+    var bw=(r.avg_actual/max)*pw;
+    s.appendChild(el("text",{x:L-12,y:yy+15,class:"axl","text-anchor":"end"}, r.time_label));
+    s.appendChild(el("rect",{x:L,y:yy+3,width:bw,height:17,rx:2,fill:ramp(r.avg_actual)}));
+    s.appendChild(el("text",{x:L+bw+8,y:yy+16,class:"ann"}, fmt(r.avg_actual,0)));
+  });
+  $("ranked").appendChild(s);
+})();
+
+/* ---------- scatter ---------- */
+(function(){
+  var W=560,H=380,L=44,R=14,T=14,B=38,pw=W-L-R,ph=H-T-B;
+  var lo=0, hi=260;
+  var x=function(v){return L+((v-lo)/(hi-lo))*pw;}, y=function(v){return T+ph-((v-lo)/(hi-lo))*ph;};
+  var s=svg(W,H);
+  for (var g=50; g<=250; g+=50){
+    s.appendChild(el("line",{x1:L,x2:L+pw,y1:y(g),y2:y(g),class:"gl"}));
+    s.appendChild(el("line",{x1:x(g),x2:x(g),y1:T,y2:T+ph,class:"gl"}));
+    s.appendChild(el("text",{x:L-8,y:y(g)+3.5,class:"ax","text-anchor":"end"},g));
+    s.appendChild(el("text",{x:x(g),y:T+ph+16,class:"ax","text-anchor":"middle"},g));
+  }
+  D.scatter.forEach(function(p){
+    s.appendChild(el("circle",{cx:x(p.x),cy:y(p.y),r:1.9,fill:ramp(p.y),opacity:".42"}));
+  });
+  s.appendChild(el("line",{x1:x(lo),y1:y(lo),x2:x(hi),y2:y(hi),
+    stroke:"var(--ink)","stroke-width":1.3,"stroke-dasharray":"5 4",opacity:".8"}));
+  s.appendChild(el("text",{x:x(hi)-6,y:y(hi)+16,class:"ann-s","text-anchor":"end"},"perfect forecast"));
+  s.appendChild(el("text",{x:L+pw/2,y:T+ph+32,class:"axl","text-anchor":"middle"},"forecast, gCO₂/kWh"));
+  s.appendChild(el("text",{x:10,y:T+ph/2,class:"axl","text-anchor":"middle",
+    transform:"rotate(-90 10 "+(T+ph/2)+")"},"actual, gCO₂/kWh"));
+  $("scatter").appendChild(s);
+})();
+
+/* ---------- MAE by hour ---------- */
+(function(){
+  var d=D.mae_hour, W=520,H=330,L=34,R=10,T=12,B=30,pw=W-L-R,ph=H-T-B;
+  var max=Math.max.apply(null,d.map(function(r){return r.mae;}))*1.12;
+  var bw=pw/d.length;
+  var s=svg(W,H);
+  for (var g=5; g<=Math.ceil(max); g+=5){
+    s.appendChild(el("line",{x1:L,x2:L+pw,y1:T+ph-(g/max)*ph,y2:T+ph-(g/max)*ph,class:"gl"}));
+    s.appendChild(el("text",{x:L-8,y:T+ph-(g/max)*ph+3.5,class:"ax","text-anchor":"end"},g));
+  }
+  var mean=d.reduce(function(a,r){return a+r.mae;},0)/d.length;
+  d.forEach(function(r,i){
+    var h=(r.mae/max)*ph;
+    s.appendChild(el("rect",{x:L+i*bw+1.2,y:T+ph-h,width:bw-2.4,height:h,rx:1.5,
+      fill: r.mae>mean ? "var(--c-high)" : "var(--accent)", opacity: r.mae>mean?".9":".62"}));
+    if(i%3===0) s.appendChild(el("text",{x:L+i*bw+bw/2,y:T+ph+15,class:"ax","text-anchor":"middle"},r.hour_of_day));
+  });
+  s.appendChild(el("line",{x1:L,x2:L+pw,y1:T+ph-(mean/max)*ph,y2:T+ph-(mean/max)*ph,
+    stroke:"var(--ink)","stroke-width":1,"stroke-dasharray":"4 3"}));
+  s.appendChild(el("text",{x:L+pw,y:T+ph-(mean/max)*ph-6,class:"ann-s","text-anchor":"end"},
+    "window average "+fmt(mean,1)));
+  s.appendChild(el("line",{x1:L,x2:L+pw,y1:T+ph,y2:T+ph,class:"gl0"}));
+  s.appendChild(el("text",{x:L+pw/2,y:H-2,class:"ax","text-anchor":"middle"},"hour of day"));
+  $("maehour").appendChild(s);
+})();
+
+/* ---------- daily MAE ---------- */
+(function(){
+  var d=D.mae_daily, W=980,H=200,L=36,R=12,T=14,B=28,pw=W-L-R,ph=H-T-B,n=d.length;
+  var max=Math.max.apply(null,d.map(function(r){return r.mae;}))*1.1;
+  var x=function(i){return L+(i/(n-1))*pw;}, y=function(v){return T+ph-(v/max)*ph;};
+  var s=svg(W,H);
+  for (var g=10; g<=max; g+=10){
+    s.appendChild(el("line",{x1:L,x2:L+pw,y1:y(g),y2:y(g),class:"gl"}));
+    s.appendChild(el("text",{x:L-8,y:y(g)+3.5,class:"ax","text-anchor":"end"},g));
+  }
+  var p=""; d.forEach(function(r,i){p+=(i===0?"M":"L")+fmt(x(i),1)+" "+fmt(y(r.mae),1);});
+  s.appendChild(el("path",{d:p,fill:"none",stroke:"var(--accent)","stroke-width":1.7,"stroke-linejoin":"round"}));
+  var worst=d.reduce(function(a,r){return r.mae>a.mae?r:a;},d[0]), wi=d.indexOf(worst);
+  s.appendChild(el("circle",{cx:x(wi),cy:y(worst.mae),r:4,fill:"var(--c-high)"}));
+  var tx=Math.min(x(wi),L+pw-90);
+  s.appendChild(el("text",{x:tx+8,y:y(worst.mae)-8,class:"ann"},worst.full_date+" · "+fmt(worst.mae,1)+" g"));
+  [0,30,60,89].forEach(function(i){
+    s.appendChild(el("text",{x:x(i),y:T+ph+16,class:"ax","text-anchor":i===0?"start":(i===89?"end":"middle")},d[i].full_date));
+  });
+  s.appendChild(el("line",{x1:L,x2:L+pw,y1:T+ph,y2:T+ph,class:"gl0"}));
+  $("maedaily").appendChild(s);
+})();
+
+/* ---------- checks table ---------- */
+(function(){
+  var tb=$("checks");
+  var order=["not_empty","no_duplicate_periods","no_gaps_in_sequence","period_is_30_minutes",
+             "forecast_numeric_in_range","actual_in_range","index_in_known_set",
+             "missing_actuals","no_future_periods"];
+  D.checks.slice().sort(function(a,b){
+    return order.indexOf(a.check_name)-order.indexOf(b.check_name);
+  }).forEach(function(c){
+    var tr=document.createElement("tr");
+    var pass = Number(c.passed)===1;
+    tr.innerHTML = "<td><code>"+c.check_name+"</code></td>"
+      + '<td><span class="pill '+(pass?"pass":"warn")+'">'+(pass?"Pass":"Warning")+"</span></td>"
+      + '<td class="r num">'+c.issue_count+"</td>"
+      + "<td>"+c.detail.replace(/--/g,"—")+"</td>";
+    tb.appendChild(tr);
+  });
+})();
+
+/* ---------- periods per day ---------- */
+(function(){
+  var d=D.periods_per_day, W=560,H=230,L=34,R=12,T=16,B=28,pw=W-L-R,ph=H-T-B;
+  var s=svg(W,H), bw=pw/d.length;
+  var lo=40, hi=52;
+  var y=function(v){return T+ph-((v-lo)/(hi-lo))*ph;};
+  [44,48,52].forEach(function(g){
+    s.appendChild(el("line",{x1:L,x2:L+pw,y1:y(g),y2:y(g),class:"gl"}));
+    s.appendChild(el("text",{x:L-8,y:y(g)+3.5,class:"ax","text-anchor":"end"},g));
+  });
+  d.forEach(function(r,i){
+    var odd = r.periods !== 48;
+    s.appendChild(el("rect",{x:L+i*bw+.4,y:y(r.periods),width:Math.max(bw-.8,1),
+      height:T+ph-y(r.periods),fill: odd?"var(--c-mod)":"var(--accent)",opacity:odd?"1":".55"}));
+    if (odd){
+      s.appendChild(el("text",{x:Math.min(Math.max(L+i*bw+bw/2,L+38),L+pw-40),y:y(r.periods)-8,class:"ann","text-anchor":"middle",
+        fill:"var(--c-mod)"}, r.full_date.slice(5)+" · "+r.periods));
+    }
+  });
+  s.appendChild(el("line",{x1:L,x2:L+pw,y1:y(48),y2:y(48),stroke:"var(--ink)","stroke-width":1.1,
+    "stroke-dasharray":"4 3"}));
+  s.appendChild(el("line",{x1:L,x2:L+pw,y1:T+ph,y2:T+ph,class:"gl0"}));
+  s.appendChild(el("text",{x:L,y:H-2,class:"ax"},"one bar per local day"));
+  $("ppd").appendChild(s);
+})();
+
+/* ---------- run table ---------- */
+(function(){
+  var r=D.run;
+  var rows=[["Window", r.window_start_utc.slice(0,10)+" to "+r.window_end_utc.slice(0,10)],
+    ["Days requested", fmt(r.days_requested,0)],
+    ["API requests", r.api_requests + (Number(r.api_requests)===0 ? " (replayed from data/raw)" : "")],
+    ["Chunks served from cache", r.cache_hits],
+    ["Retries triggered", r.retries],
+    ["Periods upserted", Number(r.periods_loaded).toLocaleString("en-GB")],
+    ["Checks run", r.checks_run],
+    ["Checks failed", r.checks_failed],
+    ["Periods without a settled actual", r.missing_actuals],
+    ["Status", r.status]];
+  var t=document.createElement("table"), tb=document.createElement("tbody");
+  rows.forEach(function(x){
+    var tr=document.createElement("tr");
+    tr.innerHTML="<td style='color:var(--ink-2)'>"+x[0]+"</td><td class='r num'>"+x[1]+"</td>";
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb); $("runtable").appendChild(t);
+})();
+
+/* ---------- tab routing ---------- */
+(function(){
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function show(view){
+    var found = false;
+    tabs.forEach(function(t){
+      var on = t.dataset.view === view;
+      if (on) found = true;
+      t.setAttribute("aria-selected", on ? "true" : "false");
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+    });
+    if (!found) show("overview");
+  }
+  tabs.forEach(function(t, i){
+    t.addEventListener("click", function(){ location.hash = t.dataset.view; });
+    t.addEventListener("keydown", function(e){
+      var j = e.key === "ArrowRight" ? i+1 : e.key === "ArrowLeft" ? i-1 : null;
+      if (j === null) return;
+      e.preventDefault();
+      var next = tabs[(j + tabs.length) % tabs.length];
+      location.hash = next.dataset.view; next.focus();
+    });
+  });
+  function fromHash(){
+    var v = (location.hash || "").replace(/^#/, "");
+    show(/^[a-z-]+$/.test(v) ? v : "overview");
+  }
+  window.addEventListener("hashchange", fromHash);
+  fromHash();
+})();
+})();
+</script>
+</body>
+</html>

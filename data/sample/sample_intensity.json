@@ -1,0 +1,112 @@
+{
+  "data": [
+    {
+      "from": "2026-09-30T23:30Z",
+      "to": "2026-10-01T00:00Z",
+      "intensity": {
+        "forecast": 157,
+        "actual": 179,
+        "index": "high"
+      }
+    },
+    {
+      "from": "2026-10-01T00:00Z",
+      "to": "2026-10-01T00:30Z",
+      "intensity": {
+        "forecast": 196,
+        "actual": 175,
+        "index": "high"
+      }
+    },
+    {
+      "from": "2026-10-01T00:30Z",
+      "to": "2026-10-01T01:00Z",
+      "intensity": {
+        "forecast": 189,
+        "actual": 175,
+        "index": "high"
+      }
+    },
+    {
+      "from": "2026-10-01T01:00Z",
+      "to": "2026-10-01T01:30Z",
+      "intensity": {
+        "forecast": 189,
+        "actual": 178,
+        "index": "high"
+      }
+    },
+    {
+      "from": "2026-10-01T01:30Z",
+      "to": "2026-10-01T02:00Z",
+      "intensity": {
+        "forecast": 181,
+        "actual": 174,
+        "index": "high"
+      }
+    },
+    {
+      "from": "2026-10-01T02:00Z",
+      "to": "2026-10-01T02:30Z",
+      "intensity": {
+        "forecast": 176,
+        "actual": 170,
+        "index": "high"
+      }
+    },
+    {
+      "from": "2026-10-01T02:30Z",
+      "to": "2026-10-01T03:00Z",
+      "intensity": {
+        "forecast": 175,
+        "actual": 166,
+        "index": "moderate"
+      }
+    },
+    {
+      "from": "2026-10-01T03:00Z",
+      "to": "2026-10-01T03:30Z",
+      "intensity": {
+        "forecast": 176,
+        "actual": 169,
+        "index": "moderate"
+      }
+    },
+    {
+      "from": "2026-10-01T03:30Z",
+      "to": "2026-10-01T04:00Z",
+      "intensity": {
+        "forecast": 174,
+        "actual": 186,
+        "index": "high"
+      }
+    },
+    {
+      "from": "2026-10-01T04:00Z",
+      "to": "2026-10-01T04:30Z",
+      "intensity": {
+        "forecast": 176,
+        "actual": 189,
+        "index": "high"
+      }
+    },
+    {
+      "from": "2026-10-01T04:30Z",
+      "to": "2026-10-01T05:00Z",
+      "intensity": {
+        "forecast": 200,
+        "actual": 196,
+        "index": "high"
+      }
+    },
+    {
+      "from": "2026-10-01T05:00Z",
+      "to": "2026-10-01T05:30Z",
+      "intensity": {
+        "forecast": 208,
+        "actual": null,
+        "index": "high"
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Unit tests and defect detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - run: python -m pip install --upgrade pip
+      - run: pip install -r requirements.txt
+
+      # 47 pipeline unit tests. No network: they run against the sample fixture.
+      - name: Pipeline unit tests
+        run: pytest tests/test_*.py -v
+
+      # Rebuild the warehouse from the committed raw responses, so the
+      # data-quality suite has something to run against without calling the API.
+      - name: Load warehouse from saved raw responses
+        run: python src/run_pipeline.py --start 2026-08-08 --end 2026-11-06 --offline
+
+      # 27 data-quality tests against the loaded database.
+      - name: Data-quality tests
+        run: pytest tests/data_quality --target=warehouse -v
+
+      # Prove the tests can fail: 7 planted defects must all be caught.
+      - name: Verify the tests catch planted defects
+        run: python scripts/verify_defect_detection.py
+
+      - name: Upload logs and reports
+        uses: actions/upload-artifact@v5
+        if: ${{ !cancelled() }}
+        with:
+          name: test-evidence
+          path: |
+            logs/
+            docs/run_summary.json
+            docs/defect_detection_report.md
+          retention-days: 14

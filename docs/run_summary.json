@@ -1,0 +1,88 @@
+{
+  "run_id": "c3ad9753a040",
+  "run_at_utc": "2026-11-07T14:39:25Z",
+  "window_start_utc": "2026-08-08T00:00:00Z",
+  "window_end_utc": "2026-11-06T00:00:00Z",
+  "days_requested": 90.0,
+  "api_requests": 0,
+  "cache_hits": 7,
+  "retries": 0,
+  "periods_loaded": 4320,
+  "checks_run": 9,
+  "checks_failed": 0,
+  "missing_actuals": 0,
+  "status": "success",
+  "checks_warned": 0,
+  "checks_passed": 9,
+  "checks": [
+    {
+      "check_name": "not_empty",
+      "passed": true,
+      "severity": "error",
+      "issue_count": 0,
+      "detail": "4320 periods in table"
+    },
+    {
+      "check_name": "no_duplicate_periods",
+      "passed": true,
+      "severity": "error",
+      "issue_count": 0,
+      "detail": "no duplicate period starts"
+    },
+    {
+      "check_name": "no_gaps_in_sequence",
+      "passed": true,
+      "severity": "error",
+      "issue_count": 0,
+      "detail": "continuous 30-minute sequence across 4320 periods"
+    },
+    {
+      "check_name": "period_is_30_minutes",
+      "passed": true,
+      "severity": "error",
+      "issue_count": 0,
+      "detail": "every period spans exactly 30 minutes"
+    },
+    {
+      "check_name": "forecast_numeric_in_range",
+      "passed": true,
+      "severity": "error",
+      "issue_count": 0,
+      "detail": "all forecasts numeric and within 0-1000 gCO2/kWh"
+    },
+    {
+      "check_name": "actual_in_range",
+      "passed": true,
+      "severity": "error",
+      "issue_count": 0,
+      "detail": "all 4320 present actuals within 0-1000 gCO2/kWh"
+    },
+    {
+      "check_name": "index_in_known_set",
+      "passed": true,
+      "severity": "error",
+      "issue_count": 0,
+      "detail": "index values all known (high, low, moderate, very high)"
+    },
+    {
+      "check_name": "missing_actuals",
+      "passed": true,
+      "severity": "warning",
+      "issue_count": 0,
+      "detail": "every period has a settled actual"
+    },
+    {
+      "check_name": "no_future_periods",
+      "passed": true,
+      "severity": "warning",
+      "issue_count": 0,
+      "detail": "no periods start in the future"
+    }
+  ],
+  "periods_in_warehouse": 4320,
+  "rows_inserted": 0,
+  "rows_refreshed": 4320,
+  "dim_date_rows": 90,
+  "dim_time_rows": 48,
+  "days_loaded": 90
+}

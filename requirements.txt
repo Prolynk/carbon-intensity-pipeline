@@ -1,0 +1,11 @@
+# Pipeline
+requests>=2.31
+pandas>=2.0
+
+# Tests
+pytest>=7.4
+
+# Docs (only needed to regenerate docs/manager_note.pdf)
+reportlab>=4.0
+
+# sqlite3, logging, zoneinfo, argparse and json are in the standard library.

@@ -1,0 +1,164 @@
+// =============================================================================
+// GB Carbon Intensity -- DAX measures
+// Paste each block into Power BI Desktop as a new measure on a measures table.
+// DimDate must be marked as a date table on [FullDate] for time intelligence.
+// =============================================================================
+
+// --- 1. Core averages --------------------------------------------------------
+
+Avg Actual Intensity =
+AVERAGE ( FactIntensity[actual] )
+// Half-hourly periods are equal length, so a straight average is the correct
+// time-weighted average. Blank actuals are ignored by AVERAGE, which is what we
+// want -- an unsettled period should not count as zero.
+
+Avg Forecast Intensity =
+AVERAGE ( FactIntensity[forecast] )
+
+Periods =
+COUNTROWS ( FactIntensity )
+
+Periods With Actual =
+COUNT ( FactIntensity[actual] )
+
+
+// --- 2. Forecast accuracy ----------------------------------------------------
+
+Mean Absolute Forecast Error =
+AVERAGEX (
+    FILTER ( FactIntensity, NOT ISBLANK ( FactIntensity[actual] ) ),
+    ABS ( FactIntensity[actual] - FactIntensity[forecast] )
+)
+// MAE in gCO2/kWh. Computed row by row rather than from pre-aggregated averages,
+// because the average of absolute errors is not the absolute of average errors.
+
+Forecast Bias =
+AVERAGEX (
+    FILTER ( FactIntensity, NOT ISBLANK ( FactIntensity[actual] ) ),
+    FactIntensity[actual] - FactIntensity[forecast]
+)
+// Signed: positive means the published forecast runs optimistic (cleaner than reality).
+
+Forecast MAPE % =
+AVERAGEX (
+    FILTER ( FactIntensity, NOT ISBLANK ( FactIntensity[actual] ) && FactIntensity[actual] > 0 ),
+    DIVIDE ( ABS ( FactIntensity[actual] - FactIntensity[forecast] ), FactIntensity[actual] )
+)
+
+Forecast Within 20 % =
+VAR Scored =
+    FILTER ( FactIntensity, NOT ISBLANK ( FactIntensity[actual] ) )
+VAR Close =
+    FILTER ( Scored, ABS ( FactIntensity[actual] - FactIntensity[forecast] ) <= 20 )
+RETURN
+    DIVIDE ( COUNTROWS ( Close ), COUNTROWS ( Scored ) )
+
+
+// --- 3. Mix and quality ------------------------------------------------------
+
+High Or Very High % =
+DIVIDE (
+    CALCULATE (
+        COUNTROWS ( FactIntensity ),
+        FactIntensity[intensity_index] IN { "high", "very high" }
+    ),
+    COUNTROWS ( FactIntensity )
+)
+
+Low Or Very Low % =
+DIVIDE (
+    CALCULATE (
+        COUNTROWS ( FactIntensity ),
+        FactIntensity[intensity_index] IN { "low", "very low" }
+    ),
+    COUNTROWS ( FactIntensity )
+)
+
+Missing Actuals % =
+DIVIDE (
+    CALCULATE ( COUNTROWS ( FactIntensity ), FactIntensity[has_actual] = 0 ),
+    COUNTROWS ( FactIntensity )
+)
+
+Checks Failed =
+CALCULATE (
+    COUNTROWS ( DataQuality ),
+    DataQuality[passed] = 0,
+    DataQuality[severity] = "error"
+)
+
+
+// --- 4. Time intelligence ----------------------------------------------------
+
+Avg Actual Same Day Last Week =
+CALCULATE (
+    [Avg Actual Intensity],
+    DATEADD ( DimDate[FullDate], -7, DAY )
+)
+
+Change vs Last Week =
+VAR Current = [Avg Actual Intensity]
+VAR Prior = [Avg Actual Same Day Last Week]
+RETURN
+    IF ( NOT ISBLANK ( Prior ), Current - Prior )
+
+Change vs Last Week % =
+DIVIDE ( [Change vs Last Week], [Avg Actual Same Day Last Week] )
+
+Rolling 7 Day Avg Actual =
+VAR LastDay = MAX ( DimDate[FullDate] )
+RETURN
+    CALCULATE (
+        [Avg Actual Intensity],
+        DATESINPERIOD ( DimDate[FullDate], LastDay, -7, DAY )
+    )
+// DATESINPERIOD returns a 7-day window ending on the last date in context, so this
+// smooths the daily line without needing a separate aggregation table.
+
+Rolling 7 Day MAE =
+VAR LastDay = MAX ( DimDate[FullDate] )
+RETURN
+    CALCULATE (
+        [Mean Absolute Forecast Error],
+        DATESINPERIOD ( DimDate[FullDate], LastDay, -7, DAY )
+    )
+
+
+// --- 5. "When is the grid greenest" ------------------------------------------
+
+Greenest Half Hour =
+VAR Ranked =
+    ADDCOLUMNS ( ALLSELECTED ( DimTime[TimeLabel] ), "@avg", [Avg Actual Intensity] )
+VAR Best = MINX ( FILTER ( Ranked, NOT ISBLANK ( [@avg] ) ), [@avg] )
+RETURN
+    MAXX ( FILTER ( Ranked, [@avg] = Best ), DimTime[TimeLabel] )
+// Returns the local half-hour slot with the lowest average actual intensity in
+// the current filter context. MAXX over the tie set keeps it deterministic.
+
+Greenest Half Hour Value =
+MINX (
+    ADDCOLUMNS ( ALLSELECTED ( DimTime[TimeLabel] ), "@avg", [Avg Actual Intensity] ),
+    [@avg]
+)
+
+Dirtiest Half Hour =
+VAR Ranked =
+    ADDCOLUMNS ( ALLSELECTED ( DimTime[TimeLabel] ), "@avg", [Avg Actual Intensity] )
+VAR Worst = MAXX ( Ranked, [@avg] )
+RETURN
+    MAXX ( FILTER ( Ranked, [@avg] = Worst ), DimTime[TimeLabel] )
+
+Peak To Trough Gap =
+[Dirtiest Half Hour Value] - [Greenest Half Hour Value]
+
+Dirtiest Half Hour Value =
+MAXX (
+    ADDCOLUMNS ( ALLSELECTED ( DimTime[TimeLabel] ), "@avg", [Avg Actual Intensity] ),
+    [@avg]
+)
+
+
+// --- 6. Formatting hints -----------------------------------------------------
+// Avg Actual Intensity, Avg Forecast Intensity, MAE, Bias : 0 or 1 decimal place
+// High Or Very High %, Missing Actuals %, Forecast Within 20 %, MAPE % : percentage, 1 dp
+// Change vs Last Week : 0 dp, conditional colour -- lower is better, so green when negative

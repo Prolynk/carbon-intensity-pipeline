@@ -1,0 +1,46 @@
+name: Daily pipeline run
+
+# Runs the real pipeline against the live API, then tests the result.
+# Scheduled workflows only run on the default branch, and GitHub disables
+# them after 60 days with no repository activity.
+on:
+  schedule:
+    - cron: '0 7 * * *'   # 07:00 UTC, give or take; cron on Actions is not punctual
+  workflow_dispatch:
+
+jobs:
+  load-and-test:
+    name: Fetch, load, validate, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - run: python -m pip install --upgrade pip
+      - run: pip install -r requirements.txt
+
+      # --backfill-hours 48 re-fetches the tail so actuals settled since the
+      # last run are picked up. This is the DEF-001 fix.
+      - name: Run pipeline against the live API
+        run: |
+          python src/run_pipeline.py \
+            --days 90 \
+            --backfill-hours 48
+
+      - name: Data-quality tests against the loaded warehouse
+        run: pytest tests/data_quality --target=warehouse -v
+
+      - name: Upload run evidence
+        uses: actions/upload-artifact@v5
+        if: ${{ !cancelled() }}
+        with:
+          name: daily-run-${{ github.run_number }}
+          path: |
+            logs/pipeline.log
+            docs/run_summary.json
+          retention-days: 30
