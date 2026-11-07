@@ -1,8 +1,6 @@
 # GB Carbon Intensity — API to dashboard
 
-<!-- Add after the first green run:
-![Tests](https://github.com/YOUR-USERNAME/carbon-intensity-pipeline/actions/workflows/tests.yml/badge.svg)
--->
+![Tests](https://github.com/Prolynk/carbon-intensity-pipeline/actions/workflows/tests.yml/badge.svg)
 
 A Python pipeline that pulls half-hourly carbon intensity data for the Great
 Britain electricity grid from a public REST API, cleans and validates it, loads it
